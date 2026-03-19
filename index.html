@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>수업 교체 및 결·보강 계획서 작성</title>
+    <style>
+        body { font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #e9e9e9; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        
+        .toolbar { width: 190mm; display: flex; justify-content: flex-end; margin-bottom: 10px; gap: 10px; }
+        .print-btn { background-color: #555; color: white; border: none; padding: 10px 20px; font-size: 11pt; font-weight: bold; cursor: pointer; border-radius: 4px; transition: background 0.2s;}
+        .print-btn:hover { background-color: #333; }
+        .reset-btn { background-color: #777; color: white; border: none; padding: 10px 20px; font-size: 11pt; font-weight: bold; cursor: pointer; border-radius: 4px; transition: background 0.2s; margin-right: auto;}
+        .reset-btn:hover { background-color: #555; }
+
+        .document-a4 { width: 190mm; min-height: 270mm; background-color: white; padding: 20mm 15mm; box-sizing: border-box; box-shadow: 0 4px 10px rgba(0,0,0,0.15); color: #000; }
+        .doc-title { background-color: #444; color: white; text-align: center; font-size: 18pt; font-weight: bold; padding: 10px 0; margin-bottom: 15px; letter-spacing: 2px; border: 1px solid #000; }
+        
+        .approval-wrap { display: flex; justify-content: flex-end; margin-bottom: 25px; }
+        .approval-table { border-collapse: collapse; text-align: center; font-size: 10pt; }
+        .approval-table th, .approval-table td { border: 1px solid #000; }
+        .approval-table th { font-weight: normal; height: 25px; width: 65px; background-color: #f2f2f2; }
+        .approval-table .sign-header-col { width: 30px; line-height: 1.4; background-color: #f2f2f2; }
+        .approval-table .sign-row td { height: 50px; }
+
+        .info-section { margin-bottom: 20px; font-size: 11pt; line-height: 1.8; position: relative; width: 100%; }
+        .info-row { display: flex; align-items: center; margin-bottom: 5px; position: relative; }
+        .info-label { display: flex; width: 125px; font-weight: bold; }
+        .info-label .num { width: 20px; }
+        .info-label .txt { flex: 1; display: flex; justify-content: space-between; }
+        .colon { margin: 0 10px 0 5px; font-weight: bold; }
+
+        #table-wrapper { position: relative; width: 100%; }
+
+        .main-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 9pt; table-layout: fixed; border: 2px solid #000; margin: 0; }
+        .main-table th, .main-table td { border: 1px solid #000; vertical-align: middle; box-sizing: border-box; }
+        .main-table tr:first-child th { border-top: 2px solid #000 !important; }
+        .main-table tbody tr:last-child td { border-bottom: 2px solid #000 !important; }
+        .main-table tbody tr:nth-last-child(2) td[rowspan] { border-bottom: 2px solid #000 !important; }
+        .main-table th:first-child, .main-table td:first-child { border-left: 2px solid #000 !important; }
+        .main-table tr.top-header th:last-child, .main-table tr.cell-top th:last-child, .main-table tr.cell-top td:last-child { border-right: 2px solid #000 !important; }
+        .main-table thead th { background-color: #f2f2f2; font-weight: bold; font-size: 10pt; }
+        .main-table .top-header th { border-bottom: 1px solid #000 !important; padding: 8px 0; font-size: 10pt; }
+        .thick-border-right { border-right: 2px solid #000 !important; }
+        .cell-top th:not([rowspan]), .cell-top td:not([rowspan]) { border-bottom: 1px dashed #666 !important; height: 28px; padding: 0; }
+        .cell-bottom th, .cell-bottom td { border-top: none !important; border-bottom: 3px double #000 !important; height: 28px; padding: 0; }
+        .main-table th[rowspan], .main-table td[rowspan] { border-bottom: 3px double #000 !important; height: 56px; padding: 0; }
+
+        .cell-input, .line-input, .date-container { background-color: transparent; color: #000; font-weight: normal; }
+        .cell-input { width: 100%; height: 100%; border: none; text-align: center; font-family: inherit; font-size: inherit; outline: none; padding: 2px; }
+        .line-input { border: none; border-bottom: 1px solid transparent; font-family: inherit; font-size: inherit; outline: none; padding: 2px 5px; }
+        .date-container { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .date-input-hidden { position: absolute; opacity: 0; width: 1px; height: 1px; bottom: 0; left: 50%; border: none; pointer-events: none; }
+        .line-input:focus { border-bottom: 1px dashed #666; }
+
+        .action-btn-group { display: none; flex-direction: column; gap: 4px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; width: 100%; align-items: center; }
+        .edit-btn { background-color: #888; color: white; border: none; padding: 4px 10px; font-size: 8pt; font-weight: bold; cursor: pointer; border-radius: 4px; transition: background 0.2s; white-space: nowrap; }
+        .edit-btn:hover { background-color: #666; }
+        .del-btn { background-color: #777; color: white; border: none; padding: 4px 10px; font-size: 8pt; font-weight: bold; cursor: pointer; border-radius: 4px; transition: background 0.2s; white-space: nowrap; }
+        .del-btn:hover { background-color: #555; }
+        
+        .write-btn { background-color: #444; color: white; border: none; padding: 6px 12px; font-size: 9pt; font-weight: bold; cursor: pointer; border-radius: 4px; display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; white-space: nowrap; }
+        .write-btn:hover { background-color: #222; }
+
+        .move-btn-group { display: none; flex-direction: row; gap: 4px; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5; }
+        .move-btn { background-color: #aaa; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 8pt; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; transition: background 0.2s; }
+        .move-btn:hover { background-color: #888; }
+
+        @media print {
+            @page { size: A4 portrait; margin: 10mm; }
+            body { background-color: white; padding: 0; margin: 0; }
+            .toolbar { display: none !important; }
+            .no-print { display: none !important; }
+            .document-a4 { box-shadow: none; padding: 0; width: 188mm; margin: 0 auto; height: auto; min-height: 0; border: none; }
+            .doc-title { background-color: #444 !important; color: white !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .main-table thead th, .approval-table th, .approval-table .sign-header-col { background-color: #f2f2f2 !important; -webkit-print-color-adjust: exact; color-adjust: exact; }
+            .line-input { border-bottom: none !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="toolbar no-print">
+    <button class="reset-btn" onclick="clearData()">초기화</button>
+    <button class="print-btn" onclick="if(validatePrint()) printNotice()">학급 공지 인쇄</button>
+    <button class="print-btn" onclick="if(validatePrint()) window.print()">계획서 인쇄</button>
+</div>
+
+<div class="document-a4">
+    <div class="doc-title">수업 교체 및 결·보강 계획서</div>
+    
+    <div class="approval-wrap">
+        <table class="approval-table">
+            <tr><td rowspan="2" class="sign-header-col">결<br><br>재</td><th>계</th><th>교 무</th></tr>
+            <tr class="sign-row"><td></td><td></td></tr>
+        </table>
+    </div>
+
+    <div class="info-section">
+        <div class="info-row">
+            <div class="info-label"><span class="num">1.</span><div class="txt"><span>결</span><span>강</span><span>사</span><span>유</span></div></div><span class="colon">:</span>
+            <input type="text" id="val-reason" class="line-input" style="width: 50%;">
+        </div>
+        <div class="info-row">
+            <div class="info-label"><span class="num">2.</span><div class="txt"><span>일 자</span><span>및</span><span>시 간</span></div></div><span class="colon">:</span>
+            <div class="date-container line-input" style="width: 300px; display: inline-flex; justify-content: flex-start; padding-left: 5px;" onclick="openDatePicker(this)">
+                <span id="disp_b" style="min-width: 10px;"></span>
+                <input type="date" id="val-dateB" class="date-input-hidden" onchange="updateHeaderDates()">
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-label"><span class="num">3.</span><div class="txt"><span>결</span><span>강</span><span>교</span><span>사</span></div></div><span class="colon">:</span>
+            <input type="text" id="absent-teacher-input" class="line-input" style="width: 70px; text-align: center;" maxlength="5">
+            <span style="font-weight: bold; margin-left: 0px;">(인)</span>
+        </div>
+    </div>
+
+    <div id="table-wrapper">
+        <table class="main-table">
+            <colgroup><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"><col style="width: 11.11%;"></colgroup>
+            <thead>
+                <tr class="top-header"><th colspan="3" class="thick-border-right"></th><th colspan="2" class="thick-border-right">수업 보강 시</th><th colspan="4">수업 교체 시</th></tr>
+                <tr class="cell-top"><th>월/일</th><th>학년-반</th><th class="thick-border-right">결강과목</th><th rowspan="2">보강교사</th><th rowspan="2" class="thick-border-right">서명 (인)</th><th>월/일</th><th>학년-반</th><th>교체과목</th><th rowspan="2">서명 (인)</th></tr>
+                <tr class="cell-bottom"><th>요 일</th><th>교 시</th><th class="thick-border-right">결강교사</th><th>요 일</th><th>교 시</th><th>교체교사</th></tr>
+            </thead>
+            <tbody id="main-tbody">
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+
+                <tr class="cell-top row-set">
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden d-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input f-class"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input h-subject"></td>
+                    <td rowspan="2"><input type="text" class="cell-input q-cover"></td>
+                    <td rowspan="2" class="thick-border-right" style="position: relative; vertical-align: middle;">
+                        <div class="move-btn-group no-print">
+                            <button class="move-btn up-btn" onclick="moveRowUp(this)">▲</button>
+                            <button class="move-btn down-btn" onclick="moveRowDown(this)">▼</button>
+                        </div>
+                    </td>
+                    <td><div class="date-container" onclick="openDatePicker(this)"><span class="disp-date"></span><input type="date" class="date-input-hidden j-date-input" onchange="updateRowDate(this)"></div></td>
+                    <td><input type="text" class="cell-input l-class"></td>
+                    <td><input type="text" class="cell-input n-subject"></td>
+                    <td rowspan="2" style="position: relative; vertical-align: middle;">
+                        <div class="action-btn-group no-print">
+                            <button class="edit-btn" onclick="editRow(this)">수정</button>
+                            <button class="del-btn" onclick="deleteRow(this)">삭제</button>
+                        </div>
+                        <button class="write-btn no-print" onclick="goToHelper()">작성</button>
+                    </td>
+                </tr>
+                <tr class="cell-bottom">
+                    <td><div class="cell-input disp-day e-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input g-period"></td>
+                    <td class="thick-border-right"><input type="text" class="cell-input i-teacher"></td>
+                    <td><div class="cell-input disp-day k-day" style="display:flex; align-items:center; justify-content:center;"></div></td>
+                    <td><input type="text" class="cell-input m-period"></td>
+                    <td><input type="text" class="cell-input o-teacher"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const daysArr = ['일', '월', '화', '수', '목', '금', '토'];
+
+    function initApp() {
+        if (!sessionStorage.getItem('cs_initialized_session')) {
+            localStorage.removeItem('csPlanState');
+            localStorage.removeItem('swapPlanResult');
+            localStorage.removeItem('absentTeacherName');
+            localStorage.removeItem('editingRowIdx');
+            sessionStorage.setItem('cs_initialized_session', 'true');
+        }
+
+        try { restoreState(); } catch(e) {}
+        try {
+            const resultStr = localStorage.getItem('swapPlanResult');
+            if (resultStr) {
+                const data = JSON.parse(resultStr);
+                const editIdx = localStorage.getItem('editingRowIdx');
+                if (editIdx !== null) {
+                    fillRow(data, parseInt(editIdx, 10));
+                } else {
+                    fillFirstEmptyRow(data);
+                }
+                localStorage.removeItem('swapPlanResult');
+            }
+            localStorage.removeItem('editingRowIdx');
+        } catch(e) {}
+        
+        document.querySelectorAll('.main-table input.cell-input').forEach(input => {
+            input.addEventListener('input', updateButtons);
+        });
+
+        setTimeout(updateButtons, 50); 
+    }
+
+    if (document.readyState === 'complete') {
+        initApp();
+    } else {
+        window.addEventListener('load', initApp);
+    }
+
+    function clearData() {
+        if(confirm("작성하신 모든 내용을 초기화하시겠습니까?")) {
+            localStorage.removeItem('csPlanState');
+            localStorage.removeItem('swapPlanResult');
+            localStorage.removeItem('absentTeacherName');
+            localStorage.removeItem('editingRowIdx');
+            sessionStorage.removeItem('cs_initialized_session');
+            window.location.reload();
+        }
+    }
+
+    function saveState() {
+        const state = {
+            reason: document.getElementById('val-reason').value, 
+            headerDateText: document.getElementById('disp_b').innerText,
+            teacherA: document.getElementById('absent-teacher-input').value, 
+            tableData: []
+        };
+        const elements = document.querySelectorAll('.main-table input.cell-input, .main-table input.date-input-hidden, .main-table .disp-date, .main-table .disp-day');
+        elements.forEach(el => {
+            state.tableData.push(el.tagName === 'INPUT' ? el.value : el.innerText);
+        });
+        localStorage.setItem('csPlanState', JSON.stringify(state));
+    }
+
+    function restoreState() {
+        const stateStr = localStorage.getItem('csPlanState');
+        if(stateStr) {
+            const state = JSON.parse(stateStr);
+            document.getElementById('val-reason').value = state.reason || '';
+            document.getElementById('disp_b').innerText = state.headerDateText || '';
+            document.getElementById('absent-teacher-input').value = state.teacherA || '';
+            
+            const elements = document.querySelectorAll('.main-table input.cell-input, .main-table input.date-input-hidden, .main-table .disp-date, .main-table .disp-day');
+            elements.forEach((el, idx) => {
+                if(state.tableData && state.tableData[idx] !== undefined) {
+                    if(el.tagName === 'INPUT') el.value = state.tableData[idx];
+                    else el.innerText = state.tableData[idx];
+                }
+            });
+        }
+    }
+
+    function goToHelper() {
+        saveState();
+        const teacherName = document.getElementById('absent-teacher-input').value;
+        if(teacherName) localStorage.setItem('absentTeacherName', teacherName);
+        window.location.href = 'cs_tt.html';
+    }
+
+    function fillRow(data, idx) {
+        const rowSets = document.querySelectorAll('.row-set');
+        if(idx < 0 || idx >= rowSets.length) return;
+        const topRow = rowSets[idx]; 
+        const bottomRow = topRow.nextElementSibling;
+        
+        topRow.querySelectorAll('input').forEach(inp => inp.value = '');
+        bottomRow.querySelectorAll('input').forEach(inp => inp.value = '');
+        topRow.querySelectorAll('.disp-date').forEach(sp => sp.innerText = '');
+        bottomRow.querySelectorAll('.disp-day').forEach(sp => sp.innerText = '');
+
+        const teacherAInput = bottomRow.querySelector('.i-teacher');
+        const mainAbsentTeacher = document.getElementById('absent-teacher-input');
+        if (!mainAbsentTeacher.value) mainAbsentTeacher.value = data.teacherA;
+
+        bottomRow.querySelector('.e-day').innerText = data.dayA;
+        bottomRow.querySelector('.g-period').value = data.periodA;
+        topRow.querySelector('.h-subject').value = data.subjectA;
+        topRow.querySelector('.f-class').value = data.classA;
+        teacherAInput.value = data.teacherA;
+
+        if (data.mode === 'swap') {
+            bottomRow.querySelector('.k-day').innerText = data.dayB;
+            bottomRow.querySelector('.m-period').value = data.periodB;
+            topRow.querySelector('.l-class').value = data.classB;
+            topRow.querySelector('.n-subject').value = data.subjectB;
+            bottomRow.querySelector('.o-teacher').value = data.teacherB;
+        } else {
+            topRow.querySelector('.q-cover').value = data.teacherB;
+        }
+        updateHeaderDates();
+        updateButtons(); 
+    }
+
+    function fillFirstEmptyRow(data) {
+        const rowSets = document.querySelectorAll('.row-set');
+        for (let i = 0; i < rowSets.length; i++) {
+            const topRow = rowSets[i]; const bottomRow = topRow.nextElementSibling;
+            const teacherAInput = bottomRow.querySelector('.i-teacher');
+
+            if (!teacherAInput.value) {
+                const mainAbsentTeacher = document.getElementById('absent-teacher-input');
+                if (!mainAbsentTeacher.value) mainAbsentTeacher.value = data.teacherA;
+
+                bottomRow.querySelector('.e-day').innerText = data.dayA;
+                bottomRow.querySelector('.g-period').value = data.periodA;
+                topRow.querySelector('.h-subject').value = data.subjectA;
+                topRow.querySelector('.f-class').value = data.classA;
+                teacherAInput.value = data.teacherA;
+
+                if (data.mode === 'swap') {
+                    bottomRow.querySelector('.k-day').innerText = data.dayB;
+                    bottomRow.querySelector('.m-period').value = data.periodB;
+                    topRow.querySelector('.l-class').value = data.classB;
+                    topRow.querySelector('.n-subject').value = data.subjectB;
+                    bottomRow.querySelector('.o-teacher').value = data.teacherB;
+                } else {
+                    topRow.querySelector('.q-cover').value = data.teacherB;
+                }
+                updateHeaderDates();
+                updateButtons(); 
+                break; 
+            }
+        }
+    }
+
+    function deleteRow(btn, skipConfirm = false) {
+        if(!skipConfirm && !confirm("작성하신 내용을 삭제하시겠습니까?")) return;
+        const targetTopRow = btn.closest('tr');
+        
+        const tbody = targetTopRow.parentElement;
+        const topRows = Array.from(tbody.querySelectorAll('.row-set'));
+        const targetIdx = topRows.indexOf(targetTopRow);
+        
+        for(let i = targetIdx; i < topRows.length - 1; i++) {
+            const currTop = topRows[i];
+            const currBot = currTop.nextElementSibling;
+            const nextTop = topRows[i+1];
+            const nextBot = nextTop.nextElementSibling;
+            
+            const currInputs = [...currTop.querySelectorAll('input'), ...currBot.querySelectorAll('input')];
+            const nextInputs = [...nextTop.querySelectorAll('input'), ...nextBot.querySelectorAll('input')];
+            currInputs.forEach((input, idx) => { input.value = nextInputs[idx].value; });
+            
+            const currSpans = [...currTop.querySelectorAll('.disp-date'), ...currBot.querySelectorAll('.disp-day')];
+            const nextSpans = [...nextTop.querySelectorAll('.disp-date'), ...nextBot.querySelectorAll('.disp-day')];
+            currSpans.forEach((span, idx) => { span.innerText = nextSpans[idx].innerText; });
+        }
+        
+        const lastTop = topRows[topRows.length - 1];
+        const lastBot = lastTop.nextElementSibling;
+        lastTop.querySelectorAll('input').forEach(inp => inp.value = '');
+        lastBot.querySelectorAll('input').forEach(inp => inp.value = '');
+        lastTop.querySelectorAll('.disp-date').forEach(sp => sp.innerText = '');
+        lastBot.querySelectorAll('.disp-day').forEach(sp => sp.innerText = '');
+        
+        updateHeaderDates();
+        updateButtons();
+        saveState();
+    }
+
+    function editRow(btn) {
+        const targetTopRow = btn.closest('tr');
+        const rowSets = Array.from(document.querySelectorAll('.row-set'));
+        const targetIdx = rowSets.indexOf(targetTopRow);
+        
+        localStorage.setItem('editingRowIdx', targetIdx);
+        
+        const rowTeacherA = targetTopRow.nextElementSibling.querySelector('.i-teacher').value.trim();
+        const mainTeacherA = document.getElementById('absent-teacher-input').value.trim();
+        if(!mainTeacherA && rowTeacherA) {
+            document.getElementById('absent-teacher-input').value = rowTeacherA;
+        }
+        
+        goToHelper();
+    }
+
+    function swapRows(idxA, idxB) {
+        const rowSets = document.querySelectorAll('.row-set');
+        const topA = rowSets[idxA]; const botA = topA.nextElementSibling;
+        const topB = rowSets[idxB]; const botB = topB.nextElementSibling;
+        
+        const inputsA = [...topA.querySelectorAll('input'), ...botA.querySelectorAll('input')];
+        const inputsB = [...topB.querySelectorAll('input'), ...botB.querySelectorAll('input')];
+        
+        inputsA.forEach((inp, i) => {
+            const temp = inp.value;
+            inp.value = inputsB[i].value;
+            inputsB[i].value = temp;
+        });
+        
+        const spansA = [...topA.querySelectorAll('.disp-date'), ...botA.querySelectorAll('.disp-day')];
+        const spansB = [...topB.querySelectorAll('.disp-date'), ...botB.querySelectorAll('.disp-day')];
+        
+        spansA.forEach((sp, i) => {
+            const temp = sp.innerText;
+            sp.innerText = spansB[i].innerText;
+            spansB[i].innerText = temp;
+        });
+        
+        updateHeaderDates();
+        updateButtons();
+        saveState();
+    }
+
+    function moveRowUp(btn) {
+        const targetTopRow = btn.closest('tr');
+        const rowSets = Array.from(document.querySelectorAll('.row-set'));
+        const idx = rowSets.indexOf(targetTopRow);
+        if (idx > 0) {
+            swapRows(idx, idx - 1);
+        }
+    }
+
+    function moveRowDown(btn) {
+        const targetTopRow = btn.closest('tr');
+        const rowSets = Array.from(document.querySelectorAll('.row-set'));
+        const idx = rowSets.indexOf(targetTopRow);
+        
+        if (idx < rowSets.length - 1) {
+            const nextBotRow = rowSets[idx + 1].nextElementSibling;
+            const nextTeacher = nextBotRow.querySelector('.i-teacher').value.trim();
+            if (nextTeacher) { 
+                swapRows(idx, idx + 1);
+            }
+        }
+    }
+
+    function updateButtons() {
+        const rowSets = Array.from(document.querySelectorAll('.row-set'));
+        let firstEmptyIdx = -1;
+        let populatedCount = 0;
+        
+        for(let i = 0; i < rowSets.length; i++) {
+            const bottomRow = rowSets[i].nextElementSibling;
+            const teacherA = bottomRow.querySelector('.i-teacher').value.trim();
+            if(!teacherA && firstEmptyIdx === -1) { 
+                firstEmptyIdx = i; 
+            }
+            if(teacherA) populatedCount++;
+        }
+        
+        for(let i = 0; i < rowSets.length; i++) {
+            const topRow = rowSets[i];
+            const bottomRow = topRow.nextElementSibling;
+            const teacherA = bottomRow.querySelector('.i-teacher').value.trim();
+            
+            const actionGrp = topRow.querySelector('.action-btn-group');
+            const writeBtn = topRow.querySelector('.write-btn');
+            const moveGrp = topRow.querySelector('.move-btn-group');
+            const upBtn = topRow.querySelector('.up-btn');
+            const downBtn = topRow.querySelector('.down-btn');
+
+            if(teacherA) {
+                if(actionGrp) actionGrp.style.display = 'flex';
+                if(writeBtn) writeBtn.style.display = 'none';
+                if(moveGrp) moveGrp.style.display = 'flex';
+                
+                if(upBtn) upBtn.style.visibility = (i === 0) ? 'hidden' : 'visible';
+                if(downBtn) downBtn.style.visibility = (i === populatedCount - 1) ? 'hidden' : 'visible';
+            } else {
+                if(actionGrp) actionGrp.style.display = 'none';
+                if(moveGrp) moveGrp.style.display = 'none';
+                
+                if (i === firstEmptyIdx) {
+                    if(writeBtn) writeBtn.style.display = 'block';
+                } else {
+                    if(writeBtn) writeBtn.style.display = 'none';
+                }
+            }
+        }
+    }
+
+    function openDatePicker(container) {
+        const trTop = container.closest('tr');
+        const trBot = trTop.nextElementSibling;
+        const teacherA = trBot.querySelector('.i-teacher').value.trim();
+
+        if (!teacherA) {
+            alert("먼저 우측의 [작성] 버튼을 눌러 결·보강 내용을 입력해주세요.");
+            return;
+        }
+
+        const isSwapCalendar = container.querySelector('.j-date-input');
+        
+        if (isSwapCalendar) {
+            const coverInput = trTop.querySelector('.q-cover').value.trim();
+            const swapTeacherInput = trBot.querySelector('.o-teacher').value.trim();
+            
+            if (coverInput && !swapTeacherInput) {
+                alert("수업 보강 시에는 교체 날짜를 입력할 수 없습니다.");
+                return;
+            }
+        }
+
+        const dateInput = container.querySelector('input[type="date"]');
+        try { dateInput.showPicker(); } catch (e) { dateInput.focus(); }
+    }
+
+    function updateDateB(val) {
+        if(!val) return;
+        const d = new Date(val);
+        const formatted = `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}.(${daysArr[d.getDay()]})`;
+        const currentText = document.getElementById('disp_b').innerText;
+        if(currentText && !currentText.includes(formatted)) {
+            document.getElementById('disp_b').innerText = currentText + ', ' + formatted;
+        } else if (!currentText) {
+            document.getElementById('disp_b').innerText = formatted;
+        }
+    }
+
+    function updateHeaderDates() {
+        let dateObjs = [];
+        const manualDateVal = document.getElementById('val-dateB').value;
+        if(manualDateVal) dateObjs.push(new Date(manualDateVal));
+
+        const inputs = document.querySelectorAll('.d-date-input');
+        inputs.forEach(input => {
+            if(input.value) dateObjs.push(new Date(input.value));
+        });
+
+        let uniqueTimeVals = [];
+        let uniqueDates = [];
+        dateObjs.forEach(d => {
+            let t = d.getTime();
+            if(!uniqueTimeVals.includes(t)) {
+                uniqueTimeVals.push(t);
+                uniqueDates.push(d);
+            }
+        });
+
+        uniqueDates.sort((a, b) => a.getTime() - b.getTime());
+
+        let formattedDates = uniqueDates.map(d => {
+            return `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}.(${daysArr[d.getDay()]})`;
+        });
+
+        if(formattedDates.length > 0) {
+            document.getElementById('disp_b').innerText = formattedDates.join(', ');
+        } else {
+            document.getElementById('disp_b').innerText = '';
+        }
+    }
+
+    function updateRowDate(inputElem, skipAlert=false) {
+        const val = inputElem.value; if(!val) return;
+        const d = new Date(val);
+        const newDayStr = daysArr[d.getDay()];
+        
+        const trTop = inputElem.closest('tr'); 
+        const colIndex = Array.from(trTop.children).indexOf(inputElem.closest('td'));
+        const trBottom = trTop.nextElementSibling; 
+        
+        let targetDayCell;
+        if (colIndex === 0) targetDayCell = trBottom.children[0].querySelector('.disp-day'); 
+        else if (colIndex === 5) targetDayCell = trBottom.children[3].querySelector('.disp-day');
+        
+        if (targetDayCell) {
+            const oldDayStr = targetDayCell.innerText.trim();
+            if (oldDayStr && oldDayStr !== newDayStr) {
+                alert(`선택하신 날짜의 요일(${newDayStr})이 기존에 지정된 요일(${oldDayStr})과 다릅니다.`);
+                inputElem.value = '';
+                return;
+            }
+            targetDayCell.innerText = newDayStr;
+        }
+
+        const spanDate = inputElem.parentElement.querySelector('.disp-date');
+        if (spanDate) spanDate.innerText = `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+
+        updateHeaderDates();
+    }
+
+    function validatePrint() {
+        const reasonInput = document.getElementById('val-reason').value.trim();
+        if(!reasonInput) {
+            alert("결강 사유를 입력해주세요.");
+            return false;
+        }
+
+        const rowSets = document.querySelectorAll('.row-set');
+        for(let i=0; i<rowSets.length; i++) {
+            const topRow = rowSets[i];
+            const bottomRow = topRow.nextElementSibling;
+            
+            const teacherA = bottomRow.querySelector('.i-teacher').value.trim();
+            if(!teacherA) continue; 
+
+            const classA = topRow.querySelector('.f-class').value.trim();
+            if(!classA) {
+                alert("결강 학급(학년-반)이 입력되지 않았습니다. 학급을 입력해주세요.");
+                return false;
+            }
+            
+            const isSwap = bottomRow.querySelector('.o-teacher').value.trim() !== '';
+            const dispDateA = topRow.querySelector('.d-date-input').parentElement.querySelector('.disp-date').innerText.trim();
+            const dispDateB = topRow.querySelector('.j-date-input').parentElement.querySelector('.disp-date').innerText.trim();
+
+            if(isSwap) {
+                if(!dispDateA || !dispDateB) {
+                    alert("수업 교체 시, 결강 날짜 및 교체 날짜가 모두 입력되어야 합니다.");
+                    return false;
+                }
+            } else {
+                if(!dispDateA) {
+                    alert("수업 보강 시, 결강 날짜가 입력되어야 합니다.");
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    function printNotice() {
+        const rowSets = document.querySelectorAll('.row-set');
+        let noticesHtml = '';
+
+        rowSets.forEach(topRow => {
+            const bottomRow = topRow.nextElementSibling;
+            const teacherA = bottomRow.querySelector('.i-teacher').value.trim();
+            if (!teacherA) return;
+
+            const classA = topRow.querySelector('.f-class').value.trim();
+            const dateA = topRow.querySelector('.disp-date').innerText.trim() || '?/?';
+            const dayA = bottomRow.querySelector('.e-day').innerText.trim() || '?';
+            const periodA = bottomRow.querySelector('.g-period').value.trim() || '?';
+            const subjectA = topRow.querySelector('.h-subject').value.trim() || '?';
+            
+            const dateValA = topRow.querySelector('.d-date-input').value; 
+
+            const teacherB_swap = bottomRow.querySelector('.o-teacher').value.trim();
+            const teacherB_cover = topRow.querySelector('.q-cover').value.trim();
+
+            let dateA_clean = dateA.replace(/^0+/, '').replace(/\/0+/g, '/');
+
+            if (teacherB_swap) {
+                const dateB_raw = topRow.querySelectorAll('.disp-date')[1].innerText.trim() || '?/?';
+                const dateB_clean = dateB_raw.replace(/^0+/, '').replace(/\/0+/g, '/');
+                const dayB = bottomRow.querySelector('.k-day').innerText.trim() || '?';
+                const periodB = bottomRow.querySelector('.m-period').value.trim() || '?';
+                const subjectB = topRow.querySelector('.n-subject').value.trim() || '?';
+                
+                const dateValB = topRow.querySelector('.j-date-input').value; 
+
+                let blockA = `
+                    <div class="notice-block">
+                        <div class="notice-time">${dateA_clean}(${dayA}) ${periodA}교시</div>
+                        <div class="notice-detail">
+                            <div class="subj-box"><span>${subjectA}</span><span>${teacherA}T</span></div>
+                            <div class="arrow">→</div>
+                            <div class="subj-box"><span>${subjectB}</span><span>${teacherB_swap}T</span></div>
+                        </div>
+                    </div>
+                `;
+
+                let blockB = `
+                    <div class="notice-block">
+                        <div class="notice-time">${dateB_clean}(${dayB}) ${periodB}교시</div>
+                        <div class="notice-detail">
+                            <div class="subj-box"><span>${subjectB}</span><span>${teacherB_swap}T</span></div>
+                            <div class="arrow">→</div>
+                            <div class="subj-box"><span>${subjectA}</span><span>${teacherA}T</span></div>
+                        </div>
+                    </div>
+                `;
+
+                let isABeforeB = true;
+                if (dateValA && dateValB) {
+                    if (new Date(dateValA) > new Date(dateValB)) {
+                        isABeforeB = false;
+                    }
+                }
+
+                let block1 = isABeforeB ? blockA : blockB;
+                let block2 = isABeforeB ? blockB : blockA;
+
+                noticesHtml += `
+                    <div class="page-container">
+                        <div class="notice-card">
+                            <h3>${classA} 수업 교체 공지</h3>
+                            ${block1}
+                            ${block2}
+                        </div>
+                    </div>
+                `;
+            } else if (teacherB_cover) {
+                noticesHtml += `
+                    <div class="page-container">
+                        <div class="notice-card cover-card">
+                            <h3>${classA} 수업 보강 공지</h3>
+                            <div class="notice-block">
+                                <div class="notice-time">${dateA_clean}(${dayA}) ${periodA}교시</div>
+                                <div class="notice-detail">
+                                    <div class="subj-box"><span>${subjectA}</span><span>${teacherA}T</span></div>
+                                    <div class="arrow">→</div>
+                                    <div class="subj-box"><span>${subjectA}</span><span>${teacherB_cover}T</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        if (!noticesHtml) {
+            alert('출력할 공지 내용이 없습니다.');
+            return;
+        }
+
+        const originalDocDisplay = document.querySelector('.document-a4').style.display;
+        const originalToolbarDisplay = document.querySelector('.toolbar').style.display;
+
+        document.querySelector('.document-a4').style.display = 'none';
+        document.querySelector('.toolbar').style.display = 'none';
+
+        const printContainer = document.createElement('div');
+        printContainer.id = 'temp-print-area';
+        printContainer.innerHTML = noticesHtml;
+        document.body.appendChild(printContainer);
+
+        const printStyle = document.createElement('style');
+        printStyle.id = 'temp-print-style';
+        printStyle.innerHTML = `
+            @page { size: A4 landscape; margin: 0; }
+            body { background-color: white; margin: 0; padding: 0; }
+            #temp-print-area { width: 100%; }
+            .page-container { width: 297mm; height: 210mm; display: flex; align-items: center; justify-content: center; page-break-after: always; overflow: hidden; box-sizing: border-box; }
+            .page-container:last-child { page-break-after: auto; }
+            .notice-card { border: 4px solid #000; border-radius: 12px; padding: 20px 30px; width: 260mm; height: 160mm; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; }
+            .notice-card h3 { text-align: center; margin-top: 0; border-bottom: 3px solid #000; padding-bottom: 10px; font-size: 2.8em; margin-bottom: 20px; }
+            .notice-block { margin-top: 15px; margin-bottom: 15px; }
+            .cover-card .notice-block { margin-top: 40px; margin-bottom: 40px; } 
+            .notice-time { font-weight: bold; font-size: 2.2em; margin-bottom: 10px; text-align: center; }
+            .notice-detail { display: flex; justify-content: center; align-items: center; gap: 30px; text-align: center; }
+            .subj-box { font-size: 2.2em; flex: 1; max-width: 45%; padding: 15px; border: 2px solid #aaa; border-radius: 10px; background-color: #fafafa; }
+            .subj-box span:first-child { font-weight: bold; display: block; margin-bottom: 10px; }
+            .arrow { font-size: 3.5em; font-weight: bold; color: #333;}
+        `;
+        document.head.appendChild(printStyle);
+
+        window.print();
+
+        document.body.removeChild(printContainer);
+        document.head.removeChild(printStyle);
+        document.querySelector('.document-a4').style.display = originalDocDisplay || '';
+        document.querySelector('.toolbar').style.display = originalToolbarDisplay || '';
+    }
+</script>
+</body>
+</html>
