@@ -90,27 +90,26 @@
     
     <div class="approval-wrap">
         <table class="approval-table">
-            <tr><td rowspan="2" class="sign-header-col">결<br><br>재</td><th>계</th><th>교 무</th></tr>
+            <tr><td rowspan="2" class="sign-header-col">결<br><br>재</td><th>계</th><th>부 장</th></tr>
             <tr class="sign-row"><td></td><td></td></tr>
         </table>
     </div>
 
     <div class="info-section">
         <div class="info-row">
-            <div class="info-label"><span class="num">1.</span><div class="txt"><span>결</span><span>강</span><span>사</span><span>유</span></div></div><span class="colon">:</span>
+            <div class="info-label"><span class="num">1.</span><div class="txt"><span>결</span><span>강</span><span>교</span><span>사</span></div></div><span class="colon">:</span>
+            <input type="text" id="absent-teacher-input" class="line-input" style="width: 70px; text-align: center;" maxlength="5" oninput="syncSubmitter()">
+        </div>
+        <div class="info-row">
+            <div class="info-label"><span class="num">2.</span><div class="txt"><span>결</span><span>강</span><span>사</span><span>유</span></div></div><span class="colon">:</span>
             <input type="text" id="val-reason" class="line-input" style="width: 50%;">
         </div>
         <div class="info-row">
-            <div class="info-label"><span class="num">2.</span><div class="txt"><span>일 자</span><span>및</span><span>시 간</span></div></div><span class="colon">:</span>
+            <div class="info-label"><span class="num">3.</span><div class="txt"><span>결</span><span>강</span><span>일</span><span>자</span></div></div><span class="colon">:</span>
             <div class="date-container line-input" style="width: 300px; display: inline-flex; justify-content: flex-start; padding-left: 5px;" onclick="openDatePicker(this)">
                 <span id="disp_b" style="min-width: 10px;"></span>
                 <input type="date" id="val-dateB" class="date-input-hidden" onchange="updateHeaderDates()">
             </div>
-        </div>
-        <div class="info-row">
-            <div class="info-label"><span class="num">3.</span><div class="txt"><span>결</span><span>강</span><span>교</span><span>사</span></div></div><span class="colon">:</span>
-            <input type="text" id="absent-teacher-input" class="line-input" style="width: 70px; text-align: center;" maxlength="5">
-            <span style="font-weight: bold; margin-left: 0px;">(인)</span>
         </div>
     </div>
 
@@ -339,8 +338,18 @@
                     <td><input type="text" class="cell-input m-period"></td>
                     <td><input type="text" class="cell-input o-teacher"></td>
                 </tr>
+
             </tbody>
         </table>
+    </div>
+
+    <div id="footer-section" style="margin-top: 40px; text-align: center; width: 100%;">
+        <div style="margin-bottom: 20px;">
+            <input type="text" id="doc-date" class="line-input" style="font-size: 14pt; text-align: center; width: 160px; font-weight: bold;">
+        </div>
+        <div style="text-align: right; font-size: 12pt; padding-right: 10px;">
+            제출인    교사 <input type="text" id="submitter-name" class="line-input" style="width: 70px; text-align: center; font-size: 12pt;"> <span style="font-weight: bold;">(인)</span>
+        </div>
     </div>
 </div>
 
@@ -372,6 +381,18 @@
             localStorage.removeItem('editingRowIdx');
         } catch(e) {}
         
+        if(!document.getElementById('doc-date').value) {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('doc-date').value = `${yyyy}. ${mm}. ${dd}.`;
+        }
+        
+        if(document.getElementById('absent-teacher-input').value && !document.getElementById('submitter-name').value) {
+            syncSubmitter();
+        }
+
         document.querySelectorAll('.main-table input.cell-input').forEach(input => {
             input.addEventListener('input', updateButtons);
         });
@@ -383,6 +404,10 @@
         initApp();
     } else {
         window.addEventListener('load', initApp);
+    }
+
+    function syncSubmitter() {
+        document.getElementById('submitter-name').value = document.getElementById('absent-teacher-input').value;
     }
 
     function clearData() {
@@ -401,6 +426,8 @@
             reason: document.getElementById('val-reason').value, 
             headerDateText: document.getElementById('disp_b').innerText,
             teacherA: document.getElementById('absent-teacher-input').value, 
+            docDate: document.getElementById('doc-date').value,
+            submitter: document.getElementById('submitter-name').value,
             tableData: []
         };
         const elements = document.querySelectorAll('.main-table input.cell-input, .main-table input.date-input-hidden, .main-table .disp-date, .main-table .disp-day');
@@ -417,6 +444,8 @@
             document.getElementById('val-reason').value = state.reason || '';
             document.getElementById('disp_b').innerText = state.headerDateText || '';
             document.getElementById('absent-teacher-input').value = state.teacherA || '';
+            if(state.docDate) document.getElementById('doc-date').value = state.docDate;
+            if(state.submitter) document.getElementById('submitter-name').value = state.submitter;
             
             const elements = document.querySelectorAll('.main-table input.cell-input, .main-table input.date-input-hidden, .main-table .disp-date, .main-table .disp-day');
             elements.forEach((el, idx) => {
@@ -467,6 +496,7 @@
         }
         updateHeaderDates();
         updateButtons(); 
+        syncSubmitter();
     }
 
     function fillFirstEmptyRow(data) {
@@ -496,6 +526,7 @@
                 }
                 updateHeaderDates();
                 updateButtons(); 
+                syncSubmitter();
                 break; 
             }
         }
@@ -547,6 +578,7 @@
         const mainTeacherA = document.getElementById('absent-teacher-input').value.trim();
         if(!mainTeacherA && rowTeacherA) {
             document.getElementById('absent-teacher-input').value = rowTeacherA;
+            syncSubmitter();
         }
         
         goToHelper();
@@ -749,6 +781,18 @@
     }
 
     function validatePrint() {
+        const docDate = document.getElementById('doc-date').value.trim();
+        const submitterName = document.getElementById('submitter-name').value.trim();
+
+        if(!docDate) {
+            alert("하단의 작성 날짜를 입력해주세요.");
+            return false;
+        }
+        if(!submitterName) {
+            alert("하단의 제출인 이름을 입력해주세요.");
+            return false;
+        }
+
         const reasonInput = document.getElementById('val-reason').value.trim();
         if(!reasonInput) {
             alert("결강 사유를 입력해주세요.");
