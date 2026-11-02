@@ -13,10 +13,11 @@ assert.equal(url,context.url,'Refusing to send credentials to an unverified URL'
 assert.equal(config.name,context.worker);assert.equal(config.d1_databases[0].database_id,context.databaseId);
 assert(new URL(url).protocol==='https:');assert(flags.every(f=>f==='--exercise'));
 const exercise=flags.includes('--exercise'),passwords=JSON.parse(await readFile(resolve(root,'private-data/production-bootstrap.local.json'),'utf8'));
+async function transport(input,init={}){for(let attempt=0;;attempt++){try{return await fetch(input,init);}catch(error){const action=init.body?JSON.parse(init.body).action:'';const safe=!init.method||['login','load','resume','exportBackup','logout'].includes(action);if(!safe||attempt>=2)throw error;await new Promise(r=>setTimeout(r,350*(attempt+1)));}}}
 const observations=[],sessions=[],prefix='p_check_'+randomBytes(8).toString('hex')+'_';let baseline,started=false,failure;
 function check(condition,label){assert(condition,label);observations.push({check:label,passed:true});console.log('PASS '+label);}
 async function api(action,payload={},cookie='',extra={}){
- const start=performance.now(),response=await fetch(url+'/api',{method:'POST',headers:{Origin:url,'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{}),...extra},body:JSON.stringify({action,payload})});
+ const start=performance.now(),response=await transport(url+'/api',{method:'POST',headers:{Origin:url,'Content-Type':'application/json',...(cookie?{Cookie:cookie}:{}),...extra},body:JSON.stringify({action,payload})});
  let value;try{value=await response.json();}catch{throw Error(action+' returned non-JSON HTTP '+response.status);}
  return {status:response.status,headers:response.headers,elapsed:Math.round(performance.now()-start),...value};
 }
@@ -24,10 +25,10 @@ async function login(role){const result=await api('login',{role,password:passwor
 function candidate(ds,mode,id){const week=C.monday(C.addDays(today(),7));for(const lesson of ds.lessons){if(C.kind(ds,lesson)!=='regular'||!lesson.room)continue;const dateA=C.addDays(week,lesson.day),args={teacherA:lesson.teacherId,dateA,periodA:lesson.period,mode,weekB:week};const c=C.findCandidates(ds,[],args)[0];if(!c)continue;const choice=c.choices[0];return {id,version:0,teacherA:lesson.teacherId,reason:'Cloudflare 실행 검증',submitter:'Cloudflare 실행 검증',submitDate:today(),items:[{mode,dateA,periodA:lesson.period,teacherB:c.teacherId,dateB:choice.date,periodB:choice.period,roomA:lesson.room}]};}throw Error('No valid '+mode+' test candidate');}
 let admin,teacher;
 try{
- const page=await fetch(url);check(page.status===200,'public UI 200');const html=await page.text();check(html.includes('Pretendard Variable')&&!/google\.script\.run|__CORE_RUNTIME__/.test(html),'official Pretendard and no legacy runtime');
- const health=await fetch(url+'/api/health');check(health.ok&&(await health.json()).data.service==='class-swap','health endpoint');
- for(const pathname of ['/api/no-such-route','/api/missing.html']){const r=await fetch(url+pathname);check(r.status===404&&/json/i.test(r.headers.get('Content-Type')||''),'JSON 404 '+pathname);}
- for(const pathname of ['/legacy/private-data/initial-data.json','/.dev.vars','/src/worker.js','/wrangler.jsonc'])check((await fetch(url+pathname)).status===404,'private route excluded '+pathname);
+ const page=await transport(url);check(page.status===200,'public UI 200');const html=await page.text();check(html.includes('Pretendard Variable')&&!/google\.script\.run|__CORE_RUNTIME__/.test(html),'official Pretendard and no legacy runtime');
+ const health=await transport(url+'/api/health');check(health.ok&&(await health.json()).data.service==='class-swap','health endpoint');
+ for(const pathname of ['/api/no-such-route','/api/missing.html']){const r=await transport(url+pathname);const body=await r.json();check(r.status===404&&body.ok===false&&/json/i.test(r.headers.get('Content-Type')||''),'JSON 404 '+pathname);}
+ for(const pathname of ['/legacy/private-data/initial-data.json','/.dev.vars','/src/worker.js','/wrangler.jsonc']){const r=await transport(url+pathname);await r.arrayBuffer();check(r.status===404,'private route excluded '+pathname);}
  const denied=await api('load');check(denied.status===401,'anonymous data denied');
  teacher=await login('teacher');admin=await login('admin');
  check(!teacher.data.dataset.teachers.some(t=>html.includes(t.name)),'no teacher names in anonymous HTML');

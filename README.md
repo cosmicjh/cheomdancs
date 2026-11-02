@@ -1,5 +1,7 @@
 # 수업 결·보강 도우미 — Workers + D1
 
+실제 검증 서비스: https://class-swap.cosmicjh.workers.dev — 현재 codex/cloudflare-workers-migration 브랜치 소스이며 main은 유지합니다. [배포·검증 결과](docs/DEPLOYED_2026-11-02.md)를 확인하세요.
+
 기존 Google 기반 결보강 화면·업무 규칙을 유지하며, GitHub 소스 관리 + Cloudflare Workers Static Assets + 같은 출처 `/api` + D1으로 실행·저장을 교체한 독립 앱입니다. 프레임워크·별도 Node 서버·ORM·KV·R2는 사용하지 않습니다.
 
 전용 저장소는 https://github.com/cosmicjh/cheomdancs 이며 프로젝트 루트는 저장소의 /입니다. 전환 작업 브랜치는 codex/cloudflare-workers-migration이고 기존 main은 검토 전까지 그대로 유지합니다. 검증 기간에는 이 전환 브랜치를 그대로 배포하며 main은 변경하지 않습니다. 사용자 확인 후에만 main으로 전환합니다. 다른 도구의 저장소·DB·배포를 재사용하지 않습니다.

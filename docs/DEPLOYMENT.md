@@ -1,70 +1,59 @@
-# GitHub · Cloudflare Workers 배포 안내
+# Cloudflare 배포·브랜치 설정
 
-확인 기준일: 2026-11-02. 기존 도구의 Pages 배포를 삭제·수정하지 않는 별도 Workers 앱입니다.
+현재 서비스와 실제 검증 결과는 [DEPLOYED_2026-11-02.md](DEPLOYED_2026-11-02.md)를 기준으로 확인합니다.
 
-## 확인된 설정과 미정값
-
-| 항목 | 현재 파일 / 필요한 작업 |
+| 항목 | 현재 값 |
 |---|---|
-| 실제 GitHub 저장소 | https://github.com/cosmicjh/cheomdancs.git, 기본 브랜치 main, 확인한 기존 main 커밋 71fa0e09fe5d3e4e51aa262bacff3ec65d83d151 |
-| 현재 배포 브랜치 | codex/cloudflare-workers-migration — 사용자 요청에 따라 main 병합 없이 검증 배포. 정상 작동 확인 후 사용자가 main 전환 결정 |
-| Root directory | / — package.json과 wrangler.jsonc가 저장소 루트에 있음 |
-| Worker 이름 | class-swap — 전용 신규 Worker |
-| Worker 진입점 | `src/worker.js` |
-| Static Assets | `./public`, 바인딩 `ASSETS`, `/api`, `/api/*` Worker 우선, SPA fallback 없음 |
-| D1 | DB 바인딩, class-swap-db, 실제 ID d4e9d2e3-35cb-475f-b128-c78d714cd354 |
-| compatibility_date | 설치된 Wrangler/workerd에서 실행 가능한 `2026-07-30` 고정 |
-| Build command | `npm run build` |
-| Deploy command | `npm run deploy` (`check-deploy.mjs` 확인 후 `wrangler deploy`) |
-| Runtime Secrets | `INITIAL_TEACHER_PASSWORD`, `INITIAL_ADMIN_PASSWORD` — 비밀값은 문서·Git에 기록하지 않음 |
-| 자동 Preview | `preview_urls:false`. 별도 DB/환경이 준비되기 전 Git 분기 Preview 빌드를 비활성화. 운영 D1을 연결하지 않음 |
+| 서비스 | https://class-swap.cosmicjh.workers.dev |
+| 소스 저장소 | cosmicjh/cheomdancs |
+| 현재 검증 브랜치 | codex/cloudflare-workers-migration |
+| main | 사용자 정상 작동 확인 후 전환. 이번 작업에서는 미변경 |
+| Root directory | / |
+| Build command | npm run build |
+| Deploy command | npm run deploy |
+| Worker / 설정 | class-swap / wrangler.jsonc |
+| 진입점 | src/worker.js |
+| Static Assets | ./public, ASSETS 바인딩, /api와 /api/* Worker 우선 |
+| D1 | class-swap-db, DB 바인딩, d4e9d2e3-35cb-475f-b128-c78d714cd354 |
+| Runtime Secrets | INITIAL_TEACHER_PASSWORD, INITIAL_ADMIN_PASSWORD |
+| 자동 Preview | 비활성. 분리 DB 준비 전 활성화하지 않음 |
 
-현재 설정에는 Pages용 출력 옵션·Functions·배포 명령이 없습니다. 원래 작업 폴더의 Pages 프로젝트 course-allocation, DB course-allocation-db 및 개인시간표 도구는 별개이며 변경하지 않았습니다. 기존 문서에 다른 도구의 실제 Pages 배포 이력이 있지만, 결보강 Pages 프로젝트의 존재·원격 상태는 확인되지 않았습니다.
+## 현재 배포와 반복 배포
 
-## 최초 배포 절차
+현재는 검증 브랜치에서 Wrangler로 직접 배포했습니다. GitHub Actions는 설치·빌드·공통/D1·Wrangler 검증을 실행하며 원격 DB 변경·배포는 하지 않습니다.
 
-아래 명령은 모두 이 프로젝트 루트에서 실행합니다. Wrangler는 package-lock의 고정 버전을 사용합니다. 이 작업에서는 원격 자원 생성·스키마 적용·Secrets 설정·배포를 실행하지 않았습니다.
+검증 브랜치의 변경을 배포할 때 다음 순서로 실행하고 실제 반환 URL·버전을 기록합니다.
 
 ```powershell
+git branch --show-current
 npm ci
-node scripts/wrangler.mjs login
-node scripts/wrangler.mjs whoami
-node scripts/wrangler.mjs d1 list
-# 전용 DB가 없는 것을 확인했을 때만 생성합니다.
-node scripts/wrangler.mjs d1 create class-swap-db
-```
-
-응답의 실제 `database_id`를 `wrangler.jsonc`에 반영하고 대시보드의 Worker 이름·DB 이름을 대조합니다. 다른 도구의 ID를 복사하지 않습니다. `npm run deploy:check`는 로컬 시험 ID를 거부합니다. 이 검사는 대시보드 실재 여부를 증명하지 않으므로 조회 결과도 확인해야 합니다.
-
-```powershell
-npm run deploy:check
-npm run db:migrate:remote
-node scripts/wrangler.mjs secret put INITIAL_TEACHER_PASSWORD
-node scripts/wrangler.mjs secret put INITIAL_ADMIN_PASSWORD
 npm run build
+npm test
+npm run test:browser
+npm run deploy:check
 npm run deploy:dry-run
 npm run deploy
 ```
 
-초기값 `1234`를 유지하려면 위 두 Secret의 보호된 입력 경로에 직접 설정합니다. 공개 JavaScript는 비밀번호를 비교하지 않습니다. DB에 이미 설정된 역할 비밀번호는 초기 Secret을 바꿔도 재설정되지 않습니다. 첫 로그인에서만 무작위 salt의 PBKDF2 해시를 만들고, 이후 변경은 관리자 화면에서 수행합니다. 구형 Apps Script 비밀번호·세션을 추정하여 이전하지 않습니다.
+main으로 바꾸거나 기존 Worker·DB 이름을 임의로 바꾸지 않습니다. 배포 중 빌드에 운영 자료 입력이나 DB 초기화를 묶지 않습니다. 스키마 변경이 있을 때만 별도로 npm run db:migrate:remote를 실행합니다. 최신 운영 백업 이관·복구는 [MIGRATION.md](MIGRATION.md)를 따릅니다.
 
-GitHub 연동 Workers Builds에서는 cosmicjh/cheomdancs를 선택하고 검증 기간에는 배포 브랜치 codex/cloudflare-workers-migration, Root directory /, 위 Build/Deploy 값을 입력합니다. Runtime Secrets는 Worker의 **Settings → Variables & Secrets**에 입력하며 Build variables와 구분합니다. 다른 도구가 있는 저장소를 선택하려면 Root directory와 빌드 감시 경로를 결보강 폴더로 한정하고 기존 설정을 검토해야 합니다.
+Runtime Secrets는 Cloudflare의 Worker Settings → Variables & Secrets 또는 Wrangler secret 명령으로 관리합니다. 비밀번호 값은 Git·HTML·빌드 전용 환경변수에 넣지 않습니다. 기존 역할 비밀번호는 D1에 저장되므로 초기 Secret 재설정으로 바뀌지 않고 관리자 화면에서 변경합니다.
 
-자료 이관은 빌드·배포와 분리합니다. [이관 문서](MIGRATION.md)의 최신 백업 우선 원칙으로 빈 전용 DB에만 입력하고 정확히 검증합니다. 배포 성공만으로 운영 데이터 이관을 완료 처리하지 않습니다.
+## GitHub 자동 빌드 연결
 
-## 배포 후 확인
+현재 Wrangler OAuth는 Builds API에 403을 반환하여 자동 연동은 미설정입니다. [공식 Builds API](https://developers.cloudflare.com/workers/ci-cd/builds/api-reference/)는 사용자 범위 API token의 Workers Builds Configuration Edit와 Worker tag 조회용 Workers Scripts Read 권한을 안내합니다.
 
-Wrangler가 실제 반환한 URL에서 `/`, `/app.js`, `/api/health`와 알 수 없는 `/api/*`의 JSON 404를 확인합니다. 미인증 자료 조회 401, 교사 관리자 API 403, 로그인·재개·저장·다른 브라우저 조회·수정·취소·인쇄·비밀번호 변경을 검증합니다. 로그인 전 소스에 교사명·시간표 JSON이 없어야 합니다. 인증 응답은 `no-store`, HTTPS 쿠키는 HttpOnly·Secure·SameSite=Strict여야 합니다.
+Cloudflare 대시보드에서 class-swap → Settings → Builds → Connect GitHub로 cosmicjh/cheomdancs를 선택합니다. 검증 기간 production branch는 codex/cloudflare-workers-migration, Root /, Build npm run build, Deploy npm run deploy입니다. Preview는 비활성화합니다. 별도 Runtime Secrets와 DB 바인딩은 위 실제 리소스를 유지합니다. main을 먼저 선택하지 않습니다.
 
-Production CPU, D1 Metrics, 로그의 `exceededCpu`·5xx를 확인합니다. 현재 로컬 통과 결과만으로 운영 CPU나 무료 요금제 적합성을 확정할 수 없습니다.
+## 정상 확인 후 main 전환
 
-## 비용·한도 추정과 출처
+사용자가 전환을 결정한 뒤 현재 브랜치 변경을 검토·병합하고 배포 소스를 main으로 바꿉니다. 같은 Worker·D1을 유지하여 시간표·계획·취소 이력·비밀번호가 보존되도록 합니다. DB 초기 입력·기존 자료 덮어쓰기·Pages 리소스 삭제를 자동으로 수행하지 않습니다.
 
-공식 무료 한도는 Workers 동적 요청 하루 100,000건·요청 CPU 10ms, D1 읽기 하루 5,000,000행·쓰기 100,000행·총 저장 5GB입니다. 예를 들어 하루 인증 조회 1,000회, 저장 계획서 최대 3,000건이면 매번 전체 계획을 읽는 현재 방식은 계획 읽기 약 300만 행에 인증 조회 등을 더합니다. 저장 100건/일, 각 24개 교체 내역이면 예약 쓰기만 최대 9,600행이고 수정·삭제·인증·인덱스 쓰기가 추가됩니다. 최대 규모를 넘어서는 운영량은 별도 측정이 필요합니다. PBKDF2 100,000회 비용과 큰 백업 복원의 CPU는 원격 측정 전이며 무료 운영을 보장하지 않습니다.
+## 검증 명령
 
-- [Workers Static Assets 바인딩·라우팅](https://developers.cloudflare.com/workers/static-assets/binding/)
-- [Workers Builds 구성·Runtime Secrets와 Build variables](https://developers.cloudflare.com/workers/ci-cd/builds/configuration/)
-- [D1 마이그레이션](https://developers.cloudflare.com/d1/reference/migrations/)
-- [Workers Web Crypto](https://developers.cloudflare.com/workers/runtime-apis/web-crypto/)
-- [Workers 요청·CPU 한도](https://developers.cloudflare.com/workers/platform/limits/)
-- [D1 요금·무료 한도](https://developers.cloudflare.com/d1/platform/pricing/)
+```powershell
+node scripts/verify-remote.mjs https://class-swap.cosmicjh.workers.dev
+npm run data:verify -- legacy/private-data/initial-data.json --remote
+```
+
+원격 검증은 비공개 로컬 접속 설정을 읽고 검증된 동일 URL에만 보냅니다. 기본 실행은 조회·인증 확인이며, --exercise는 새 전용 DB의 계획 0건과 입력 해시를 확인한 경우에만 자체 시험 계획을 저장·정리합니다. 운영 계획이 생긴 뒤에는 쓰기 시험을 실행하지 않습니다. 일반 CI에서는 원격 검증을 실행하지 않습니다.
