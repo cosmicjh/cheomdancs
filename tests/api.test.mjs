@@ -55,7 +55,7 @@ test('cancel versions, retained history, released reservations and cross-session
 }));
 test('same-draft duplicates fail; cover reserves exactly two endpoints',()=>fixture(async(h,c)=>{
  const p=rawPlan();p.items.push({...p.items[0]});check(await save(h,c,p),400);assert.equal((await h.state()).plans.length,0);
- p.items=[{mode:'cover',dateA:'2026-11-02',periodA:1,teacherB:'b'}];check(await save(h,c,p));assert.equal((await h.state()).reservations.length,2);
+ p.items=[{mode:'cover',dateA:rawPlan().items[0].dateA,periodA:1,teacherB:'b'}];check(await save(h,c,p));assert.equal((await h.state()).reservations.length,2);
 }));
 test('save versus changed timetable race cannot commit a stale validation',()=>fixture(async(h,c)=>{
  const changed=synthetic();changed.lessons[0].subject='새과목';
@@ -87,7 +87,7 @@ test('zero-row stale CAS raises SQL error and cannot remove winner reservations'
 }));
 test('DB unique reservation constraint rolls back a preceding plan write',()=>fixture(async(h,c)=>{
  const p=check(await save(h,c)).plan,before=await h.state(),other={...p,id:'p_constraint_00000001'};
- await assert.rejects(h.db.batch([h.db.prepare('INSERT INTO plans(id,version,status,content) VALUES(?,1,?,?)').bind(other.id,'active',JSON.stringify(other)),h.db.prepare('INSERT INTO reservations VALUES(?,?,?,?)').bind('a','2026-11-02',1,other.id),h.db.prepare('UPDATE state SET plan_rev=plan_rev+1')]),/UNIQUE/);
+ await assert.rejects(h.db.batch([h.db.prepare('INSERT INTO plans(id,version,status,content) VALUES(?,1,?,?)').bind(other.id,'active',JSON.stringify(other)),h.db.prepare('INSERT INTO reservations VALUES(?,?,?,?)').bind('a',p.items[0].dateA,1,other.id),h.db.prepare('UPDATE state SET plan_rev=plan_rev+1')]),/UNIQUE/);
  assert.deepEqual(await h.state(),before);
 }));
 test('backup exports no credentials; restore preserves IDs, cancelled history and historical snapshots',()=>fixture(async(h,c)=>{

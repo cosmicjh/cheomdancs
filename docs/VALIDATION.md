@@ -85,3 +85,5 @@ public에는 index.html, app.js, core.js, xlsx.full.min.js, 라이선스 2개, _
 ## 전용 체크아웃 검증
 
 2026-11-02 전용 폴더에서 npm ci와 Node 공개 빌드를 실행하고 npm test 41건 전체 통과를 확인했습니다(실행 시간 약 95초). 실제 Wrangler 로컬 마이그레이션·정적 자산·API JSON 오류·비공개 파일 차단·deploy dry-run도 통과했습니다. 비공개 초기 JSON은 일반 빌드·테스트 입력이 아니며 가상 fixture를 사용합니다. Git 반영 대상 57개 추가 파일에 실제 교사명과 비공개 경로가 없고, 참고 원본 14개 파일은 manifest의 SHA-256과 일치합니다. 기존 두 루트 파일 삭제를 포함한 변경은 전환 브랜치에만 적용합니다. GitHub Actions 원격 실행 결과는 별도로 확인해야 하며 로컬 통과를 원격 CI 통과로 간주하지 않습니다.
+
+GitHub 최초 push 커밋 9cbf7821ca5e292f2b3ffcdd3bd0a0d83c5ed51e의 [원격 CI](https://github.com/cosmicjh/cheomdancs/actions/runs/41374072013)는 success로 확인했습니다. GitHub의 깨끗한 Ubuntu/Node 24 환경에서 npm ci, 공개 빌드, 전체 41개 테스트, Wrangler 검증이 모두 통과했습니다. 이후 API 시험 fixture는 실행일 기준 2주 뒤 월요일을 사용하도록 하여 시간이 지난 뒤에도 미래 계획 충돌 검사 의미를 유지합니다.
