@@ -4,7 +4,7 @@ const $=id=>document.getElementById(id);
 const esc=v=>String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const today=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
 const uid=()=>{const a=new Uint32Array(4);crypto.getRandomValues(a);return Array.from(a,x=>x.toString(16).padStart(8,'0')).join('');};
-let busy=false,loginRole='teacher',toastTimer=0,transport=null,imported=null,lessonEditing=null;
+let busy=false,loginRole='teacher',toastTimer=0,transport=null,portal=null,imported=null,lessonEditing=null;
 const S={role:'',dataset:null,plans:[],dataRev:'0',planRev:'0',view:'write',dirty:false,draft:null,sel:null,editIndex:-1,candidates:[]};
 function resetDraft(){S.draft={id:'p_'+uid(),version:0,teacherA:'',reason:'',submitDate:today(),submitter:'',items:[]};S.dirty=false;resetSelection(false);}
 function resetSelection(preserveDates=true){const d=preserveDates&&S.sel?S.sel.dateA:today(),week=preserveDates&&S.sel?S.sel.weekB:C.monday(d);S.sel={mode:S.sel?S.sel.mode:'swap',dateA:d,periodA:0,weekB:week,teacherB:'',dateB:'',periodB:0,roomA:''};S.editIndex=-1;}
@@ -13,11 +13,11 @@ function showError(error){const msg=error.message||String(error);const dialog=do
 function setBusy(value){busy=value;document.querySelectorAll('fieldset[data-lock]').forEach(e=>{e.disabled=value;});$('progress').hidden=!value;}
 async function work(fn){if(busy)return;setBusy(true);$('appError').hidden=true;$('loginError').textContent='';document.querySelectorAll('[data-dialog-error]').forEach(e=>e.hidden=true);try{return await fn();}catch(e){showError(e);}finally{setBusy(false);}}
 function timeout(p,ms,message){let timer;return Promise.race([p,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(message)),ms);})]).finally(()=>clearTimeout(timer));}
-async function initTransport(){transport=async request=>{const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),90000);try{const response=await fetch('/api',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});return await response.json();}catch(error){throw new Error(error.name==='AbortError'?'응답이 지연되고 있습니다. 다시 불러와 저장 여부를 확인해 주세요.':'서버에 연결하지 못했습니다. 작성 내용은 유지됩니다. 다시 불러와 저장 여부를 확인해 주세요.');}finally{clearTimeout(timer);}};}
+async function initTransport(){try{if(window.parent!==window&&window.parent.location.origin===location.origin)portal=window.parent.TimetableClassSwap||null;}catch{}if(portal?.request){document.documentElement.dataset.embedded='true';transport=request=>portal.request(request);return;}transport=async request=>{const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),90000);try{const response=await fetch('/api',{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(request),signal:controller.signal});return await response.json();}catch(error){throw new Error(error.name==='AbortError'?'응답이 지연되고 있습니다. 다시 불러와 저장 여부를 확인해 주세요.':'서버에 연결하지 못했습니다. 작성 내용은 유지됩니다. 다시 불러와 저장 여부를 확인해 주세요.');}finally{clearTimeout(timer);}};}
 async function api(action,payload={}){const r=await transport({action,payload});if(!r?.ok){const e=new Error(r?.message||'서버 응답을 확인할 수 없습니다.');e.code=r?.code;throw e;}return r.data;}
 function mergeSnapshot(v){if(v.dataset)S.dataset=v.dataset;else if(v.hasDataset===false)S.dataset=null;if(v.plans)S.plans=v.plans;S.dataRev=v.dataRev;S.planRev=v.planRev;S.role=v.role||S.role;}
-function showLogin(role,preserve){loginRole=role;$('loginTitle').textContent=role==='admin'?'관리자 로그인':'교사 로그인';$('loginEyebrow').textContent=role==='admin'?'ADMINISTRATOR':'TEACHER';$('appView').hidden=true;$('loginView').hidden=false;$('logoutBtn').hidden=true;$('adminLink').textContent=role==='admin'?'교사 로그인':'관리자';$('password').value='';if(preserve)$('loginError').textContent='로그인이 만료되었습니다. 작성 중인 내용은 유지됩니다.';}
-function loggedIn(v){mergeSnapshot(v);if(!S.draft)resetDraft();$('loginView').hidden=true;$('appView').hidden=false;$('logoutBtn').hidden=false;$('status').textContent=S.role==='admin'?'관리자 · 연결됨':'교사 · 연결됨';$('status').classList.add('connected');$('adminNav').hidden=S.role!=='admin';$('adminLink').hidden=S.role==='admin';renderAll();}
+function showLogin(role,preserve){loginRole=role;$('loginTitle').textContent=role==='admin'?'관리자 로그인':'교사 로그인';$('appView').hidden=true;$('loginView').hidden=false;$('logoutBtn').hidden=true;$('adminLink').textContent=role==='admin'?'교사 로그인':'관리자';$('password').value='';if(preserve)$('loginError').textContent='로그인이 만료되었습니다. 작성 중인 내용은 유지됩니다.';}
+function loggedIn(v){mergeSnapshot(v);if(portal&&!S.dirty&&!S.draft?.teacherA){const t=S.dataset?.teachers.find(t=>t.name===portal.selectedTeacher());if(t){S.draft.teacherA=t.id;S.draft.submitter=t.name;}}if(!S.draft)resetDraft();$('loginView').hidden=true;$('appView').hidden=false;$('logoutBtn').hidden=false;$('status').textContent=S.role==='admin'?'관리자 · 연결됨':'교사 · 연결됨';$('status').classList.add('connected');$('adminNav').hidden=S.role!=='admin';$('adminLink').hidden=S.role==='admin';renderAll();}
 function markDirty(){S.dirty=true;$('dirtyLabel').hidden=false;}
 function teacherOptions(value,empty=true){return(empty?'<option value="">교사 선택</option>':'')+(S.dataset?S.dataset.teachers.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(t=>'<option value="'+esc(t.id)+'"'+(t.id===value?' selected':'')+'>'+esc(t.name)+'</option>').join(''):'');}
 function currentItems(){return S.draft.items.filter((_,i)=>i!==S.editIndex);}
@@ -26,7 +26,7 @@ function prettyDate(d,year=false){if(!d)return '';return(year?d.replaceAll('-','
 function timeText(d,p){return prettyDate(d)+' '+p+'교시';}
 function kindLabel(k){return{elective:'선택',review:'확인',duty:'배정',activity:'창체',block:'연속',blocked:'제한'}[k]||'';}
 function timetableHtml(id,week,side){
- if(!S.dataset||!id)return'<div class="empty-state"><p>'+(side==='B'?'대상 교사를 선택하면 시간표가 표시됩니다.':'결강 교사를 선택해 주세요.')+'</p></div>';
+ if(!S.dataset||!id)return'<div class="empty-state" aria-label="시간표"></div>';
  const ds=S.dataset,map=C.lessonMap(ds),used=usedSlots(),max=Math.max(...ds.slots.map(s=>s.period));
  let h='<table class="tt"><thead><tr><th>교시</th>'+C.DAYS.map((d,i)=>'<th>'+d+'<small>'+prettyDate(C.addDays(week,i)).split('(')[0]+'</small></th>').join('')+'</tr></thead><tbody>';
  for(let p=1;p<=max;p++){h+='<tr><td>'+p+'</td>';for(let d=0;d<5;d++){
@@ -52,23 +52,23 @@ function recomputeCandidates(){
 function renderSelection(){
  recomputeCandidates();$('dateA').value=S.sel.dateA;$('weekB').value=S.sel.weekB;$('weekBField').hidden=S.sel.mode==='cover';$('sourceTeacherLabel').textContent=S.dataset?(C.teacher(S.dataset,S.draft.teacherA)?.name||'교사 미선택'):'교사 미선택';$('selectedDateSummary').textContent=prettyDate(S.sel.dateA);
  document.querySelectorAll('[data-action=mode]').forEach(b=>b.classList.toggle('active',b.dataset.mode===S.sel.mode));
- $('rightStep').textContent=S.sel.mode==='swap'?'02 · 교체 수업':'02 · 보강 교사';$('candidateCount').textContent=S.candidates.length+'명';$('candidateTitle').textContent=S.sel.teacherB?(S.sel.mode==='swap'?'교체할 수업을 선택하세요':'선택한 보강 교사'):S.sel.periodA?(S.candidates.length?'시간표상 가능한 교사':'조건에 맞는 교사가 없습니다'):'수업을 먼저 선택하세요';
+ $('candidateCount').textContent=S.candidates.length+'명';$('candidateTitle').textContent=S.sel.teacherB?(S.sel.mode==='swap'?'교체할 수업을 선택하세요':'선택한 보강 교사'):S.sel.periodA?(S.candidates.length?'시간표상 가능한 교사':'조건에 맞는 교사가 없습니다'):'교체 대상';
  $('teacherB').innerHTML='<option value="">대상 교사 선택</option>'+S.candidates.map(c=>'<option value="'+esc(c.teacherId)+'"'+(S.sel.teacherB===c.teacherId?' selected':'')+'>'+esc(c.name)+(S.sel.mode==='swap'?' · '+c.choices.length+'개 수업':' · 당일 '+c.load+'시간')+'</option>').join('');
  $('tableA').innerHTML=timetableHtml(S.draft.teacherA,C.monday(S.sel.dateA),'A');$('tableB').innerHTML=timetableHtml(S.sel.teacherB,S.sel.mode==='cover'?C.monday(S.sel.dateA):S.sel.weekB,'B');
  const la=S.dataset&&S.sel.periodA?C.baseLesson(S.dataset,S.draft.teacherA,S.sel.dateA,S.sel.periodA):null;
- let summary='결강 교사와 수업을 선택해 주세요.';
+ let summary='';
  if(la){summary='<strong>'+esc(timeText(S.sel.dateA,S.sel.periodA))+' · '+esc(la.subject)+' '+esc(la.room)+'</strong>';
-  const b=C.teacher(S.dataset,S.sel.teacherB);if(b&&S.sel.periodB){const lb=C.baseLesson(S.dataset,b.id,S.sel.dateB,S.sel.periodB);summary+='<p>'+esc(b.name)+(S.sel.mode==='swap'?' · '+esc(timeText(S.sel.dateB,S.sel.periodB))+' · '+esc(lb.subject):' · 같은 시간 보강')+'</p>';}else summary+='<p>대상 교사'+(S.sel.mode==='swap'?'와 교체 수업을':'를')+' 선택해 주세요.</p>';}
+  const b=C.teacher(S.dataset,S.sel.teacherB);if(b&&S.sel.periodB){const lb=C.baseLesson(S.dataset,b.id,S.sel.dateB,S.sel.periodB);summary+='<p>'+esc(b.name)+(S.sel.mode==='swap'?' · '+esc(timeText(S.sel.dateB,S.sel.periodB))+' · '+esc(lb.subject):' · 같은 시간 보강')+'</p>';}}
  $('selectionText').innerHTML=summary;$('roomOverride').hidden=!la||!!la.room;$('roomOverride').value=S.sel.roomA||'';$('addBtn').disabled=!(la&&S.sel.teacherB&&S.sel.periodB);$('addBtn').textContent=S.editIndex>=0?'수정 적용':'계획에 추가';$('clearSelectionBtn').hidden=!S.sel.periodA;
 }
 function renderItems(){
  const items=S.draft.items;$('itemCount').textContent=items.length+'건';
- if(!items.length){$('items').innerHTML='<div class="pending-empty">추가한 수업이 여기에 표시됩니다.</div>';return;}
+ if(!items.length){$('items').innerHTML='<div class="pending-empty"></div>';return;}
  $('items').innerHTML='<table class="list-table"><thead><tr><th>유형</th><th>결강 수업</th><th>학급·대상</th><th>담당 교사 / 교체 수업</th><th></th></tr></thead><tbody>'+items.map((i,n)=>'<tr><td><span class="type">'+(i.mode==='swap'?'교체':'보강')+'</span></td><td>'+esc(timeText(i.dateA,i.periodA))+'<br><small>'+esc(i.subjectA)+'</small></td><td>'+esc(i.roomA)+'</td><td>'+esc(i.teacherBName)+(i.mode==='swap'?'<br><small>'+esc(timeText(i.dateB,i.periodB))+' · '+esc(i.subjectB)+'</small>':'')+'</td><td class="right"><button class="text-btn" data-action="moveItem" data-index="'+n+'" data-direction="-1" aria-label="위로 이동"'+(n===0?' disabled':'')+'>↑</button><button class="text-btn" data-action="moveItem" data-index="'+n+'" data-direction="1" aria-label="아래로 이동"'+(n===items.length-1?' disabled':'')+'>↓</button><button class="text-btn" data-action="editItem" data-index="'+n+'">수정</button><button class="text-btn" data-action="removeItem" data-index="'+n+'">삭제</button></td></tr>').join('')+'</tbody></table>';
 }
 function renderWrite(){
  $('documentTitle').innerHTML=(S.draft.version?'계획서 수정':'새 계획서')+'<span id="dirtyLabel" class="dirty"'+(!S.dirty?' hidden':'')+'>저장 전</span>';
- $('datasetLabel').textContent=S.dataset?S.dataset.meta.label:'';$('noDataset').hidden=!!S.dataset;
+ $('noDataset').hidden=!!S.dataset;
  $('teacherA').innerHTML=teacherOptions(S.draft.teacherA);$('reason').value=S.draft.reason;$('submitDate').value=S.draft.submitDate;$('submitter').value=S.draft.submitter;
  renderSelection();renderItems();
 }
@@ -83,12 +83,12 @@ function renderAdmin(){
  $('stats').innerHTML=[['교사',st.teachers],['배정 시간',st.lessons],['선택과목 규칙',st.electives],['주간 운영 교시',st.slots]].map(([a,b])=>'<div class="stat"><small>'+a+'</small><strong>'+b+'</strong></div>').join('');
  const old=$('adminTeacher').value;$('adminTeacher').innerHTML=teacherOptions(old,false);if(!$('adminTeacher').value&&ds)$('adminTeacher').value=ds.teachers[0].id;
  $('adminTimetable').innerHTML=ds?timetableHtml($('adminTeacher').value,C.monday(today()),'admin'):'<div class="empty-state"><p>시간표를 먼저 등록해 주세요.</p></div>';
- $('electiveSummary').textContent=ds?st.electives+'개 규칙으로 교체 제한을 확인합니다.':'등록된 선택과목 정보가 없습니다.';
+
  const warnings=ds?ds.meta.warnings.slice():[];if(st.reviewSubjects&&st.reviewSubjects.length)warnings.push('축약명 확인 필요: '+st.reviewSubjects.join(', '));
  $('dataWarnings').innerHTML=warnings.length?'<div class="notice-box">'+warnings.map(esc).join('<br>')+'</div>':'';
 }
 function renderAll(){
- $('historyCount').textContent=S.plans.filter(p=>p.status==='active').length||'';$('schoolLabel').textContent=S.dataset?(S.dataset.meta.school||'수업 교체와 보강 계획을 한곳에서'):'수업 교체와 보강 계획을 한곳에서';
+ $('historyCount').textContent=S.plans.filter(p=>p.status==='active').length||'';
  if(S.view==='admin'&&S.role!=='admin')S.view='write';
  ['write','history','admin'].forEach(v=>{$(v+'View').hidden=S.view!==v;});document.querySelectorAll('[data-action=nav]').forEach(b=>b.classList.toggle('active',b.dataset.view===S.view));
  renderWrite();renderHistory();renderAdmin();
@@ -108,7 +108,7 @@ function openPlan(id,copy){const p=S.plans.find(p=>p.id===id);if(!p)return;if(S.
 function editItem(index){const i=S.draft.items[index];if(!i)return;S.editIndex=index;S.sel={mode:i.mode,dateA:i.dateA,periodA:i.periodA,weekB:C.monday(i.dateB),teacherB:i.teacherB,dateB:i.dateB,periodB:i.periodB,roomA:i.roomA};renderSelection();$('tableA').scrollIntoView({behavior:'smooth',block:'center'});}
 function downloadJSON(value,name){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json;charset=utf-8'})),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 let xlsxPromise;
-function loadXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);if(xlsxPromise)return xlsxPromise;xlsxPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src='/xlsx.full.min.js';s.onload=()=>resolve(window.XLSX);s.onerror=()=>{xlsxPromise=null;s.remove();reject(new Error('엑셀 읽기 기능을 불러오지 못했습니다. 초기 자료 JSON을 사용하거나 연결 상태를 확인해 주세요.'));};document.head.appendChild(s);});return timeout(xlsxPromise,35000,'엑셀 읽기 기능의 응답이 지연되고 있습니다.');}
+function loadXLSX(){if(window.XLSX)return Promise.resolve(window.XLSX);if(xlsxPromise)return xlsxPromise;xlsxPromise=new Promise((resolve,reject)=>{const s=document.createElement('script');s.src=new URL('./xlsx.full.min.js',import.meta.url).href;s.onload=()=>resolve(window.XLSX);s.onerror=()=>{xlsxPromise=null;s.remove();reject(new Error('엑셀 읽기 기능을 불러오지 못했습니다. 초기 자료 JSON을 사용하거나 연결 상태를 확인해 주세요.'));};document.head.appendChild(s);});return timeout(xlsxPromise,35000,'엑셀 읽기 기능의 응답이 지연되고 있습니다.');}
 async function excelRows(file,type){if(!file)throw new Error(type==='timetable'?'전체 교사 시간표 파일을 선택해 주세요.':'선택과목 파일을 선택해 주세요.');if(file.size>15000000)throw new Error('엑셀 파일은 15MB 이하로 선택해 주세요.');const X=await loadXLSX(),wb=X.read(await file.arrayBuffer(),{type:'array',cellFormula:false,cellStyles:false});for(const name of wb.SheetNames){const rows=X.utils.sheet_to_json(wb.Sheets[name],{header:1,defval:'',raw:true,blankrows:true});if(type==='timetable'?rows.some(r=>r.includes('교사')&&r.includes('월')&&r.includes('화')):rows.some(r=>r.includes('학년')&&r.some(v=>String(v).includes('축약'))))return rows;}throw new Error('파일에서 필요한 시간표 양식을 찾지 못했습니다.');}
 async function analyzeImport(){
  imported=null;$('commitImportBtn').disabled=true;const jf=$('jsonFile').files[0],tf=$('timetableFile').files[0],ef=$('electiveFile').files[0];let data,backup=null;
@@ -123,7 +123,7 @@ async function commitImport(){
  const backup=imported.backup;if(!confirm(backup?'현재 시간표와 모든 계획서를 파일 내용으로 교체합니다. 전체 복원을 진행하겠습니까?':'분석한 시간표로 등록·교체하겠습니까? 저장된 계획서와 충돌하면 변경되지 않습니다.'))return;
  const r=await api(backup?'restoreBackup':'replaceData',backup?{backup,dataRev:S.dataRev,planRev:S.planRev}:{dataset:imported.dataset,dataRev:S.dataRev});mergeSnapshot(r);imported=null;$('commitImportBtn').disabled=true;$('importPreview').innerHTML='';resetDraft();renderAll();notify('자료를 반영했습니다.');
 }
-function openLesson(day,period){if(!S.dataset)return;const id=$('adminTeacher').value,l=C.baseLesson(S.dataset,id,C.addDays(C.monday(today()),day),period);lessonEditing={id,day,period,blockId:l.blockId||''};$('lessonTitle').textContent=C.teacher(S.dataset,id).name+' · '+C.DAYS[day]+' '+period+'교시';$('lessonSubject').value=l.subject;$('lessonRoom').value=l.room;$('blockNote').textContent=l.blockId?'연속수업에 속한 교시를 함께 수정합니다.':'과목과 학급·교실을 모두 비우면 미배정으로 변경됩니다.';$('lessonDialog').showModal();}
+function openLesson(day,period){if(!S.dataset)return;const id=$('adminTeacher').value,l=C.baseLesson(S.dataset,id,C.addDays(C.monday(today()),day),period);lessonEditing={id,day,period,blockId:l.blockId||''};$('lessonTitle').textContent=C.teacher(S.dataset,id).name+' · '+C.DAYS[day]+' '+period+'교시';$('lessonSubject').value=l.subject;$('lessonRoom').value=l.room;$('blockNote').textContent=l.blockId?'연속수업 전체 수정':'';$('lessonDialog').showModal();}
 async function saveLesson(){
  const ds=C.clone(S.dataset),e=lessonEditing,subject=$('lessonSubject').value.trim(),room=$('lessonRoom').value.trim();if(!subject&&room)throw new Error('과목 없이 학급·교실만 입력할 수 없습니다.');
  const matched=l=>l.teacherId===e.id&&(e.blockId?l.blockId===e.blockId:l.day===e.day&&l.period===e.period);
@@ -183,5 +183,6 @@ $('adminTeacher').addEventListener('change',()=>{$('adminTimetable').innerHTML=t
 $('lessonForm').addEventListener('submit',e=>{e.preventDefault();work(saveLesson);});$('electiveForm').addEventListener('submit',e=>{e.preventDefault();work(saveElectives);});
 window.addEventListener('beforeunload',e=>{if(S.dirty){e.preventDefault();e.returnValue='';}});
 window.addEventListener('afterprint',()=>{$('printRoot').innerHTML='';const e=$('printPageStyle');if(e)e.remove();});
+window.ClassSwapEmbed=Object.freeze({get dirty(){return S.dirty||S.editIndex>=0;},resume(){return work(async()=>loggedIn(await api('resume')));},discard(){S.dirty=false;}});
 resetDraft();
 work(async()=>{await initTransport();$('status').textContent='연결됨';try{loggedIn(await api('resume'));}catch(e){showLogin('teacher');if(e.code!=='AUTH_REQUIRED')throw e;}});
