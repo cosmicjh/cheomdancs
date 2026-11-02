@@ -1,0 +1,7 @@
+/private-data/
+/outputs/
+/qa/
+*.xlsx
+*.zip
+*.log
+.DS_Store

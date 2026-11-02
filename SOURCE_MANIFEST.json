@@ -1,0 +1,119 @@
+{
+  "prepared_date_kst": "2026-11-02",
+  "source_archive_name": "결보강_웹관리도구.zip",
+  "source_archive_sha256": "503def5e0d97c7ca5b6dc05e2e47996368df88fb553eb39888009156ade59c2e",
+  "legacy_files_unchanged": true,
+  "legacy_file_count": 15,
+  "initial_dataset": {
+    "schema": 1,
+    "teachers": 64,
+    "slots": 34,
+    "lessons": 1149,
+    "electives": 54
+  },
+  "verification": {
+    "original_core_tests": {
+      "passed": 21,
+      "executed_on": "2026-11-02"
+    },
+    "original_apps_script_mock_tests": {
+      "passed": 18,
+      "executed_on": "2026-11-02"
+    },
+    "cloudflare_implementation_created": false,
+    "cloudflare_deployment_verified": false,
+    "live_operational_data_verified": false
+  },
+  "files": [
+    {
+      "path": "legacy/.gitignore",
+      "bytes": 59,
+      "sha256": "6303616b36d8717b640fad3b98ec13cabc7463cb7ccf99fa0eba63d558eb42ad",
+      "private_input": false
+    },
+    {
+      "path": "legacy/README.md",
+      "bytes": 10394,
+      "sha256": "c82265302b8e24bff790647a1ce4e28425634ce4be447d135fd3479289740d8e",
+      "private_input": false
+    },
+    {
+      "path": "legacy/apps-script/App.html",
+      "bytes": 668702,
+      "sha256": "638a8e50fe35d45dc3761ad7c2b59502d104498be1f100236d2794f585def192",
+      "private_input": false
+    },
+    {
+      "path": "legacy/apps-script/Bridge.html",
+      "bytes": 1236,
+      "sha256": "e90bd94436fa33e742ffd004ceb765d625d40fa22772288f927dd60f65d775be",
+      "private_input": false
+    },
+    {
+      "path": "legacy/apps-script/Code.gs",
+      "bytes": 19370,
+      "sha256": "04417b29fc8a92f818706d09873cd89958b316fc0f5e40cd0150493d0f55c13e",
+      "private_input": false
+    },
+    {
+      "path": "legacy/apps-script/Core.gs",
+      "bytes": 16729,
+      "sha256": "326b75bb325e095b26546d795fc9777faef985d27a950d528e4045fd839ac922",
+      "private_input": false
+    },
+    {
+      "path": "legacy/apps-script/appsscript.json",
+      "bytes": 245,
+      "sha256": "8086c2b86221de882f6dcbe57a74d0bc1ee9223a74e0bcdcc3d9777ae1e3c1da",
+      "private_input": false
+    },
+    {
+      "path": "legacy/build.py",
+      "bytes": 1641,
+      "sha256": "0edb09786b1413ec8a5112d8b6d6eb4d1bb2af87746e802408301a0861486a31",
+      "private_input": false
+    },
+    {
+      "path": "legacy/docs/LICENSE-Pretendard.txt",
+      "bytes": 4420,
+      "sha256": "e15fcdb1e99c9f172ac9d67cc82dcf533c16568c56635ce8e765be10bdfc2c27",
+      "private_input": false
+    },
+    {
+      "path": "legacy/docs/분석및검증.md",
+      "bytes": 10454,
+      "sha256": "1c0181d7ccb1a300f769b2f98fde67eaa402224e41eb151b3f13c7dde1da1cf9",
+      "private_input": false
+    },
+    {
+      "path": "legacy/github/config.js",
+      "bytes": 149,
+      "sha256": "64f28846c077d268afd53c21e458d9625bf2ff3cc245fd5e42603bccc700c356",
+      "private_input": false
+    },
+    {
+      "path": "legacy/github/index.html",
+      "bytes": 685367,
+      "sha256": "78f97aacc09c230fa2dd2a9b2e9c63e7173da25b8f716baf9b8da57759100609",
+      "private_input": false
+    },
+    {
+      "path": "legacy/private-data/initial-data.json",
+      "bytes": 162763,
+      "sha256": "92fb72c19332effcf0cf97531974e1e50ceb7db3bf12ed297a5c7cf40b333ad2",
+      "private_input": true
+    },
+    {
+      "path": "legacy/tests/core.test.cjs",
+      "bytes": 7955,
+      "sha256": "423f61fdc47437cd97a27ffd764b0bf6307e1ad73ad842b2958009ceb2d3fc46",
+      "private_input": false
+    },
+    {
+      "path": "legacy/tests/server.test.cjs",
+      "bytes": 9288,
+      "sha256": "ff04657279afc474d8656a6b10df97050586417f9d34fa203e6cca4433335865",
+      "private_input": false
+    }
+  ]
+}

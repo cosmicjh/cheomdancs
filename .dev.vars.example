@@ -1,0 +1,3 @@
+# Set locally or use Cloudflare Runtime Secrets. Never commit real values.
+INITIAL_TEACHER_PASSWORD=
+INITIAL_ADMIN_PASSWORD=

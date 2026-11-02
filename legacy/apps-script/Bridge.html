@@ -1,0 +1,17 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>연결</title></head><body>
+<script>
+'use strict';
+const CONFIG = <?!= bridgeConfig ?>;
+const pending = new Set();
+function send(value) { window.top.postMessage(Object.assign({channel:'class-swap',nonce:CONFIG.nonce},value),CONFIG.origin); }
+window.addEventListener('message', event => {
+  const msg=event.data;
+  if (event.source!==window.top || event.origin!==CONFIG.origin || !msg || msg.channel!=='class-swap' || msg.nonce!==CONFIG.nonce || msg.type!=='request' || !/^[a-zA-Z0-9_-]{8,100}$/.test(msg.id||'') || pending.has(msg.id)) return;
+  if (JSON.stringify(msg.request || {}).length>2500000) { send({type:'response',id:msg.id,result:{ok:false,code:'LIMIT',message:'요청 자료가 너무 큽니다.'}}); return; }
+  pending.add(msg.id);
+  google.script.run.withSuccessHandler(result=>{pending.delete(msg.id);send({type:'response',id:msg.id,result});})
+    .withFailureHandler(()=>{pending.delete(msg.id);send({type:'response',id:msg.id,result:{ok:false,code:'SERVER',message:'서버 연결에 실패했습니다. 저장 여부를 확인한 후 다시 시도해 주세요.'}});})
+    .classSwapApi(msg.request);
+});
+send({type:'ready'});
+</script></body></html>

@@ -1,0 +1,32 @@
+# Actual school data and operational backups: local inputs, not repository assets.
+/legacy/private-data/
+/private-data/
+/backups/
+**/결보강_전체자료_*.json
+*.xlsx
+*.xls
+
+# Runtime secrets. Empty examples can be tracked.
+**/.env
+**/.env.*
+!**/.env.example
+**/.dev.vars
+**/.dev.vars.*
+!**/.dev.vars.example
+
+# Local dependencies, databases and development state.
+**/node_modules/
+**/.wrangler/
+**/__pycache__/
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+*.log
+.DS_Store
+
+/public/
+/test-results/
+/package-lock.json.tmp
