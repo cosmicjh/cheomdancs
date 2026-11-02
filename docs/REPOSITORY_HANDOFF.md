@@ -21,12 +21,12 @@
 ## 검토·운영 연결
 
 1. codex/cloudflare-workers-migration을 검토하고 GitHub Actions 결과를 확인합니다. 워크플로는 비공개 초기 JSON·Secrets 없이 설치·빌드·공통/D1·Wrangler 로컬 검증을 실행하며 원격 배포·DB 입력을 하지 않습니다.
-2. main에 병합한 뒤 Cloudflare Workers Builds에서 cosmicjh/cheomdancs, production branch main, Root directory /, Build npm run build, Deploy npm run deploy를 지정합니다. 병합 전 main에는 아직 Workers 코드가 없습니다.
+2. 검증 기간에는 main 병합 없이 Cloudflare에서 cosmicjh/cheomdancs, production branch codex/cloudflare-workers-migration, Root directory /, Build npm run build, Deploy npm run deploy를 지정합니다. 병합 전 main에는 아직 Workers 코드가 없습니다.
 3. wrangler.jsonc의 제안 이름 class-swap을 실제 Worker와 대조하고 DB 바인딩 DB에 결보강 전용 D1의 실제 ID를 반영합니다. all-zero ID는 로컬 전용이며 배포 검사가 거부합니다.
 4. Runtime Secrets INITIAL_TEACHER_PASSWORD / INITIAL_ADMIN_PASSWORD를 설정합니다. 실제 비밀값은 Git이나 문서에 기록하지 않습니다.
 5. [DEPLOYMENT.md](DEPLOYMENT.md)와 [MIGRATION.md](MIGRATION.md)의 원격 스키마·검증·최신 백업 우선 이관을 별도로 수행합니다.
 
-GitHub 코드 반영, 실제 Cloudflare 배포, 운영 데이터 이관은 별개입니다. 실제 배포·원격 이관은 이번 저장소 연결 단계에서 실행하지 않습니다. URL과 Worker·D1 실값이 검증되기 전에는 운영 완료로 표시하지 않습니다.
+GitHub 코드 반영, 실제 Cloudflare 배포, 운영 데이터 이관은 별개입니다. 2026-11-02 후속 요청으로 전환 브랜치를 유지하여 실제 배포를 진행합니다. 결과는 DEPLOYED_2026-11-02.md에 구분해 기록합니다. URL과 Worker·D1 실값이 검증되기 전에는 운영 완료로 표시하지 않습니다.
 
 ## 전용 체크아웃 검증
 

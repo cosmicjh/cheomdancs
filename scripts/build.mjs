@@ -7,7 +7,7 @@ const allowed=['index.html','app.js','core.js','xlsx.full.min.js','LICENSE-Sheet
 for(const entry of await readdir(output)) if(!allowed.includes(entry) || !(await lstat(resolve(output,entry))).isFile()) throw Error('Unexpected public asset: '+entry);
 for(const name of ['index.html','app.js','xlsx.full.min.js','LICENSE-SheetJS.txt']) await copyFile(resolve(root,'src/client',name),resolve(output,name));
 await copyFile(resolve(root,'src/shared/core.js'),resolve(output,'core.js'));
-await copyFile(resolve(root,'legacy/docs/LICENSE-Pretendard.txt'),resolve(output,'LICENSE-Pretendard.txt'));
+await copyFile(resolve(root,'src/client/LICENSE-Pretendard.txt'),resolve(output,'LICENSE-Pretendard.txt'));
 await writeFile(resolve(output,'_headers'),`/*
   X-Content-Type-Options: nosniff
   Referrer-Policy: same-origin

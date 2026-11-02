@@ -8,13 +8,19 @@
   "assets": {
     "directory": "./public",
     "binding": "ASSETS",
-    "run_worker_first": ["/api", "/api/*"],
+    "run_worker_first": [
+      "/api",
+      "/api/*"
+    ],
     "not_found_handling": "none"
   },
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "class-swap-db",
-    "database_id": "00000000-0000-0000-0000-000000000000",
-    "migrations_dir": "migrations"
-  }]
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "class-swap-db",
+      "database_id": "d4e9d2e3-35cb-475f-b128-c78d714cd354",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "account_id": "965071bae1ca798003675034b0ce7ce5"
 }

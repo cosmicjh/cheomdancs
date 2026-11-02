@@ -2,7 +2,7 @@
 
 기존 Google 기반 결보강 화면·업무 규칙을 유지하며, GitHub 소스 관리 + Cloudflare Workers Static Assets + 같은 출처 `/api` + D1으로 실행·저장을 교체한 독립 앱입니다. 프레임워크·별도 Node 서버·ORM·KV·R2는 사용하지 않습니다.
 
-전용 저장소는 https://github.com/cosmicjh/cheomdancs 이며 프로젝트 루트는 저장소의 /입니다. 전환 작업 브랜치는 codex/cloudflare-workers-migration이고 기존 main은 검토 전까지 그대로 유지합니다. main 병합 후 Cloudflare Workers Builds의 운영 브랜치를 main으로 연결합니다. 실제 Cloudflare Worker·D1 실값 연결과 배포는 아직 실행하지 않았습니다. 다른 도구의 저장소·DB·배포를 재사용하지 않습니다.
+전용 저장소는 https://github.com/cosmicjh/cheomdancs 이며 프로젝트 루트는 저장소의 /입니다. 전환 작업 브랜치는 codex/cloudflare-workers-migration이고 기존 main은 검토 전까지 그대로 유지합니다. 검증 기간에는 이 전환 브랜치를 그대로 배포하며 main은 변경하지 않습니다. 사용자 확인 후에만 main으로 전환합니다. 다른 도구의 저장소·DB·배포를 재사용하지 않습니다.
 
 ## 로컬 실행
 
@@ -36,7 +36,7 @@ Windows 브라우저 검증은 설치된 Edge를 사용합니다. 다른 환경�
 
 | 경로 | 역할 / GitHub 포함 여부 |
 |---|---|
-| `src/client/index.html`, `app.js` | 화면·내장 Schedule Sans·인쇄·브라우저 동작의 편집 원본 / 포함 |
+| `src/client/index.html`, `app.js` | 화면·내장 Pretendard Variable·인쇄·브라우저 동작의 편집 원본 / 포함 |
 | `src/shared/core.js` | 브라우저와 Worker가 함께 사용하는 순수 규칙 / 포함 |
 | `src/shared/backup.js` | 백업 정규화·이관 검증 / 포함 |
 | `src/worker.js`, `src/server/` | API·권한·쿠키·KDF·원자적 D1 변경 / 포함 |
@@ -48,7 +48,7 @@ Windows 브라우저 검증은 설치된 Edge를 사용합니다. 다른 환경�
 | `legacy/private-data/`, `private-data/`, `backups/` | 실제 교사 자료·최신 운영 백업·일시 SQL / Git·정적 배포 제외 |
 | `.dev.vars`, `.env*`, `.wrangler/`, `test-results/`, `node_modules/` | Secrets·로컬 DB·비공개 실행 자료 / 제외 |
 
-`npm run build`는 Python이나 비공개 JSON을 읽지 않습니다. `public/index.html`을 직접 편집하지 마세요. 원본의 글꼴 Base64와 OFL 고지는 그대로 유지하며 별도 글꼴 폴더를 추가하지 않았습니다. SheetJS는 로컬 공개 자산으로 제공하며 해당 라이선스를 포함합니다.
+`npm run build`는 Python이나 비공개 JSON을 읽지 않습니다. `public/index.html`을 직접 편집하지 마세요. 공식 Pretendard Variable v1.3.9 원본을 Base64로 내장하고 OFL 고지를 유지하며 별도 글꼴 폴더를 추가하지 않았습니다. SheetJS는 로컬 공개 자산으로 제공하며 해당 라이선스를 포함합니다.
 
 ## 운영 준비 문서
 

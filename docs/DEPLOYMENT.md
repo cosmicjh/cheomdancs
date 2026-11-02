@@ -7,12 +7,12 @@
 | 항목 | 현재 파일 / 필요한 작업 |
 |---|---|
 | 실제 GitHub 저장소 | https://github.com/cosmicjh/cheomdancs.git, 기본 브랜치 main, 확인한 기존 main 커밋 71fa0e09fe5d3e4e51aa262bacff3ec65d83d151 |
-| 결보강 작업·운영 브랜치 | 작업: codex/cloudflare-workers-migration. 운영: 검토 후 main에 병합하여 연결. 현재 main에는 기존 두 HTML만 있으므로 병합 전 main으로 Workers Builds를 연결하지 않음 |
+| 현재 배포 브랜치 | codex/cloudflare-workers-migration — 사용자 요청에 따라 main 병합 없이 검증 배포. 정상 작동 확인 후 사용자가 main 전환 결정 |
 | Root directory | / — package.json과 wrangler.jsonc가 저장소 루트에 있음 |
-| Worker 이름 | `wrangler.jsonc`의 `class-swap`은 신규 이름 제안. 기존 대시보드와 일치 여부 미확인. 이미 결보강 Worker가 있으면 그 실제 이름을 확인 후 반영 |
+| Worker 이름 | class-swap — 전용 신규 Worker |
 | Worker 진입점 | `src/worker.js` |
 | Static Assets | `./public`, 바인딩 `ASSETS`, `/api`, `/api/*` Worker 우선, SPA fallback 없음 |
-| D1 | 바인딩 `DB`, 제안 이름 `class-swap-db`; ID는 전부 0인 로컬 시험값이므로 실제 전용 DB ID로 교체 필요 |
+| D1 | DB 바인딩, class-swap-db, 실제 ID d4e9d2e3-35cb-475f-b128-c78d714cd354 |
 | compatibility_date | 설치된 Wrangler/workerd에서 실행 가능한 `2026-07-30` 고정 |
 | Build command | `npm run build` |
 | Deploy command | `npm run deploy` (`check-deploy.mjs` 확인 후 `wrangler deploy`) |
@@ -48,7 +48,7 @@ npm run deploy
 
 초기값 `1234`를 유지하려면 위 두 Secret의 보호된 입력 경로에 직접 설정합니다. 공개 JavaScript는 비밀번호를 비교하지 않습니다. DB에 이미 설정된 역할 비밀번호는 초기 Secret을 바꿔도 재설정되지 않습니다. 첫 로그인에서만 무작위 salt의 PBKDF2 해시를 만들고, 이후 변경은 관리자 화면에서 수행합니다. 구형 Apps Script 비밀번호·세션을 추정하여 이전하지 않습니다.
 
-GitHub 연동 Workers Builds에서는 cosmicjh/cheomdancs를 선택하고 전환 브랜치를 검토·병합한 뒤 배포 브랜치 main, Root directory /, 위 Build/Deploy 값을 입력합니다. Runtime Secrets는 Worker의 **Settings → Variables & Secrets**에 입력하며 Build variables와 구분합니다. 다른 도구가 있는 저장소를 선택하려면 Root directory와 빌드 감시 경로를 결보강 폴더로 한정하고 기존 설정을 검토해야 합니다.
+GitHub 연동 Workers Builds에서는 cosmicjh/cheomdancs를 선택하고 검증 기간에는 배포 브랜치 codex/cloudflare-workers-migration, Root directory /, 위 Build/Deploy 값을 입력합니다. Runtime Secrets는 Worker의 **Settings → Variables & Secrets**에 입력하며 Build variables와 구분합니다. 다른 도구가 있는 저장소를 선택하려면 Root directory와 빌드 감시 경로를 결보강 폴더로 한정하고 기존 설정을 검토해야 합니다.
 
 자료 이관은 빌드·배포와 분리합니다. [이관 문서](MIGRATION.md)의 최신 백업 우선 원칙으로 빈 전용 DB에만 입력하고 정확히 검증합니다. 배포 성공만으로 운영 데이터 이관을 완료 처리하지 않습니다.
 
